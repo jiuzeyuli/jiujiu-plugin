@@ -28,9 +28,13 @@
 ### 1. 克隆仓库
 
 ```bash
-cd Yunzai-Bot/plugins
 git clone https://github.com/jiuzeyuli/jiujiu-plugin.git
-cd jiujiu-plugin
+```
+
+### 网络不好可以
+
+```bash
+git clone --depth=1 https://ghfast.top/https://github.com/jiuzeyuli/jiujiu-plugin.git ./plugins/jiujiu-plugin
 ```
 
 ### 2. 安装依赖
