@@ -40,7 +40,7 @@ git clone --depth=1 https://ghfast.top/https://github.com/jiuzeyuli/jiujiu-plugi
 ### 2. 安装依赖
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 3. 初始化数据目录
