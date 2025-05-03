@@ -1,11 +1,11 @@
 {
   "$schema": "./schema.json",
   "meta": {
-    "configVersion": "1.2.0",
-    "description": "jiujiu-plugin 默认配置 - 请勿直接修改，自定义配置请写入 local.json"
+    "configVersion": "1.3.0",
+    "description": "jiujiu-plugin 默认配置 - 基于 assets 目录结构"
   },
 
-  // ==================== 核心模块 ====================
+  // ==================== 核心配置 ====================
   "core": {
     "debug": false,
     "logLevel": "info",
@@ -17,11 +17,11 @@
     }
   },
 
-  // ==================== 图片模块 ====================
+  // ==================== 图片配置 ====================
   "image": {
     "local": {
-      "path": "./resources/images",
-      "maxSize": "100MB",
+      "path": "./assets/images",       // 关键修改：resources -> assets
+      "maxSize": "20MB",
       "allowedExtensions": [".jpg", ".jpeg", ".png", ".webp"],
       "scanInterval": 300,
       "watchChanges": true
@@ -35,10 +35,6 @@
         {
           "url": "https://source.unsplash.com/random/500x500",
           "weight": 3
-        },
-        {
-          "url": "https://api.ixiaowai.cn/api/api.php",
-          "weight": 2
         }
       ],
       "timeout": 8000,
@@ -55,9 +51,9 @@
     }
   },
 
-  // ==================== 缓存模块 ====================
+  // ==================== 缓存配置 ====================
   "cache": {
-    "strategy": "hybrid", // hybrid/memory/disk
+    "strategy": "hybrid",
     "memory": {
       "maxItems": 200,
       "ttl": 7200
@@ -72,7 +68,7 @@
     }
   },
 
-  // ==================== 命令模块 ====================
+  // ==================== 命令配置 ====================
   "commands": {
     "prefix": "#",
     "aliases": {
@@ -93,9 +89,9 @@
     }
   },
 
-  // ==================== 更新模块 ====================
+  // ==================== 更新配置 ====================
   "update": {
-    "channel": "stable", // stable/beta/alpha
+    "channel": "stable",
     "autoCheck": true,
     "checkInterval": 43200,
     "backup": {
@@ -109,24 +105,19 @@
     }
   },
 
-  // ==================== 数据库模块 ====================
-  "database": {
+  // ==================== 数据库配置 ====================
+"database": {
     "type": "sqlite",
     "path": "./data/jiujiu.db",
     "optimization": {
-      "journalMode": "WAL",
-      "cacheSize": -2000,
-      "synchronous": "NORMAL"
+      "journalMode": "WAL"
     },
-    "tables": {
-      "usage": {
-        "autoVacuum": true,
-        "statsRetention": "30d"
-      }
-    }
-  },
+-   "migrationsPath": "./database/migrations",
++   "migrationsPath": "./database/db-migrations"
+  }
 
-  // ==================== 安全模块 ====================
+
+  // ==================== 安全配置 ====================
   "security": {
     "rateLimit": {
       "enable": true,
@@ -136,19 +127,6 @@
     "validation": {
       "imageSignature": false,
       "maxFileDepth": 5
-    }
-  },
-
-  // ==================== 通知模块 ====================
-  "notification": {
-    "format": {
-      "image": "[{time}] {user} 获取了图片: {source}",
-      "error": "⚠️ 错误: {error}"
-    },
-    "methods": {
-      "console": true,
-      "logFile": true,
-      "botNotice": false
     }
   }
 }

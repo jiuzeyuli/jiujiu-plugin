@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yourname/jiujiu-plugin/config/schema.json",
+  "$id": "https://github.com/yourname/jiujiu-plugin/schema.json",
   "title": "jiujiu-plugin 配置规范",
-  "description": "Yunzai-Bot 图片插件配置验证规则",
+  "description": "基于 assets 目录结构的配置校验规则",
   "type": "object",
   "additionalProperties": false,
   "required": ["core", "image", "commands"],
@@ -10,17 +10,20 @@
     "sizeString": {
       "type": "string",
       "pattern": "^\\d+(\\.\\d+)?[KMG]?B$",
-      "examples": ["500KB", "10MB", "1.5GB"]
+      "examples": ["500KB", "10MB", "1.5GB"],
+      "description": "支持 B/KB/MB/GB 单位的大小表示"
     },
-    "pathString": {
+    "assetPath": {
       "type": "string",
-      "pattern": "^(\./|/|[A-Za-z]:)",
-      "minLength": 1
+      "pattern": "^(\./assets/|/|[A-Za-z]:\\\\|\\w+:)",
+      "examples": ["./assets/images", "/mnt/data/images", "C:\\pics"],
+      "description": "必须指向 assets 目录或绝对路径"
     },
     "durationString": {
       "type": "string",
       "pattern": "^\\d+[smh]$",
-      "examples": ["30s", "5m", "2h"]
+      "examples": ["30s", "5m", "2h"],
+      "description": "时间间隔（秒/分钟/小时）"
     }
   },
   "properties": {
@@ -28,28 +31,35 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "debug": { "type": "boolean", "default": false },
+        "debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "调试模式（输出详细日志）"
+        },
         "logLevel": {
           "type": "string",
           "enum": ["error", "warn", "info", "debug", "silly"],
-          "default": "info"
+          "default": "info",
+          "description": "日志输出级别"
         },
         "dataPath": {
-          "$ref": "#/definitions/pathString",
-          "default": "./data/jiujiu"
+          "$ref": "#/definitions/assetPath",
+          "default": "./data/jiujiu",
+          "description": "插件数据存储根目录"
         },
-        "autoReload": { "type": "boolean", "default": true },
         "performance": {
           "type": "object",
           "properties": {
             "gcInterval": {
               "type": "integer",
-              "minimum": 60,
-              "default": 3600
+              "minimum": 10,
+              "default": 3600,
+              "description": "内存回收间隔（秒）"
             },
             "maxMemory": {
               "$ref": "#/definitions/sizeString",
-              "default": "512MB"
+              "default": "512MB",
+              "description": "插件最大内存占用"
             }
           }
         }
@@ -64,23 +74,31 @@
         "local": {
           "type": "object",
           "properties": {
-            "path": { "$ref": "#/definitions/pathString" },
-            "maxSize": { "$ref": "#/definitions/sizeString" },
+            "path": {
+              "$ref": "#/definitions/assetPath",
+              "default": "./assets/images",
+              "description": "本地图片存储路径"
+            },
+            "maxSize": {
+              "$ref": "#/definitions/sizeString",
+              "default": "20MB",
+              "description": "单张图片大小上限"
+            },
             "allowedExtensions": {
               "type": "array",
               "items": {
                 "type": "string",
                 "pattern": "^\\.[a-zA-Z0-9]+$"
               },
-              "minItems": 1,
-              "default": [".jpg", ".jpeg", ".png", ".webp"]
+              "default": [".jpg", ".jpeg", ".png", ".webp"],
+              "description": "允许的图片格式"
             },
             "scanInterval": {
               "type": "integer",
               "minimum": 10,
-              "default": 300
-            },
-            "watchChanges": { "type": "boolean", "default": true }
+              "default": 300,
+              "description": "目录扫描间隔（秒）"
+            }
           },
           "required": ["path", "maxSize"]
         },
@@ -89,77 +107,45 @@
           "properties": {
             "apis": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "type": "object",
                 "properties": {
-                  "url": { "type": "string", "format": "uri" },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "图片API地址"
+                  },
                   "weight": {
                     "type": "integer",
                     "minimum": 1,
-                    "default": 1
+                    "default": 1,
+                    "description": "权重值（越高越优先）"
                   }
                 },
                 "required": ["url"]
-              },
-              "minItems": 1,
-              "default": [
-                { "url": "https://picsum.photos/500/500", "weight": 5 },
-                { "url": "https://source.unsplash.com/random/500x500", "weight": 3 }
-              ]
+              }
             },
             "timeout": {
               "type": "integer",
               "minimum": 1000,
-              "default": 5000
-            },
-            "retry": {
-              "type": "object",
-              "properties": {
-                "times": { "type": "integer", "minimum": 0, "default": 2 },
-                "delay": { "type": "integer", "minimum": 0, "default": 1000 }
-              }
-            },
-            "proxy": { "type": ["string", "null"], "format": "uri" }
+              "default": 8000,
+              "description": "请求超时时间（毫秒）"
+            }
           },
           "required": ["apis"]
-        },
-        "processing": {
-          "type": "object",
-          "properties": {
-            "maxWidth": { "type": "integer", "minimum": 100, "default": 2000 },
-            "maxHeight": { "type": "integer", "minimum": 100, "default": 2000 },
-            "quality": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 85
-            }
-          }
         }
       }
     },
     "commands": {
       "type": "object",
-      "required": ["prefix"],
       "properties": {
         "prefix": {
           "type": "string",
           "minLength": 1,
           "maxLength": 3,
-          "default": "#"
-        },
-        "aliases": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z]+$": {
-              "type": "array",
-              "items": { "type": "string", "minLength": 1 }
-            }
-          },
-          "default": {
-            "random": ["随机图片", "来张图"],
-            "web": ["网络图片", "来张网络图"]
-          }
+          "default": "#",
+          "description": "触发指令前缀"
         },
         "cooldown": {
           "type": "object",
@@ -167,35 +153,43 @@
             "global": {
               "type": "integer",
               "minimum": 0,
-              "default": 1000
+              "default": 1000,
+              "description": "全局冷却时间（毫秒）"
             },
             "specific": {
               "type": "object",
               "patternProperties": {
-                "^[a-zA-Z]+$": { "type": "integer", "minimum": 0 }
+                "^\\w+$": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               },
-              "default": {
-                "random": 3000,
-                "web": 5000
-              }
+              "description": "特定命令冷却时间"
             }
           }
-        },
-        "permissions": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z]+$": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": ["master", "owner", "admin", "user"]
-              }
-            }
-          },
-          "default": {
-            "admin": ["master"],
-            "update": ["owner"]
-          }
+        }
+      },
+      "required": ["prefix"]
+    }
+  }
+}
+{
+  "definitions": {
+    "dbPath": {
+      "type": "string",
+      "pattern": "^(\./database/(db-migrations|models)|/)",
+      "examples": [
+        "./database/db-migrations",
+        "./database/models"
+      ]
+    }
+  },
+  "properties": {
+    "database": {
+      "properties": {
+        "migrationsPath": {
+          "$ref": "#/definitions/dbPath",
+          "default": "./database/db-migrations"
         }
       }
     }
