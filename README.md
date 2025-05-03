@@ -12,7 +12,6 @@
 
 ### 一键安装
 ```bash
-# 在 Yunzai 根目录执行
 git clone --depth=1 https://github.com/yourname/jiujiu-plugin.git ./plugins/jiujiu-plugin
 cd plugins/jiujiu-plugin && npm install
 ```
@@ -23,7 +22,7 @@ cd plugins/jiujiu-plugin && npm install
    ```bash
    npm install --production --registry=https://registry.npmmirror.com
    ```
-3. 添加图片到 `resources/images/`
+3. 添加图片到 `assets/images/`
 
 ## 📜 功能指令
 | 指令 | 权限 | 功能 |
@@ -35,29 +34,7 @@ cd plugins/jiujiu-plugin && npm install
 | `#啾啾更新` | 主人 | 检查插件更新 |
 | `#设置图片目录 [路径]` | 主人 | 修改图片路径 |
 
-## ⚙️ 配置说明
-编辑 `config/local.json`：
-```json
-{
-  "local": {
-    "path": "./resources/images", // 本地路径
-    "maxSize": "10MB"           // 图片大小限制
-  },
-  "web": {
-    "apis": [                  // 网络API列表
-      "https://picsum.photos/500/500",
-      "https://source.unsplash.com/random"
-    ]
-  }
-}
-```
 
-## 📦 依赖管理
-| 包名 | 用途 |
-|------|------|
-| `node-fetch` | 网络请求 |
-| `lru-cache` | 内存缓存 |
-| `file-type` | 文件验证 |
 
 ## 🛠️ 开发者指南
 ```bash
