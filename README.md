@@ -13,14 +13,14 @@
 ### 一键安装
 ```bash
 git clone --depth=1 https://github.com/jiuzeyuli/jiujiu-plugin.git ./plugins/jiujiu-plugin
-cd plugins/jiujiu-plugin && npm install
+
 ```
 
 ### 手动安装
 1. 将本仓库下载到 `plugins` 目录
 2. 安装依赖：
    ```bash
-   npm install --production --registry=https://registry.npmmirror.com
+   pnpm install
    ```
 3. 添加图片到 `assets/images/`
 
@@ -39,7 +39,7 @@ cd plugins/jiujiu-plugin && npm install
 ## 🛠️ 开发者指南
 ```bash
 # 安装开发依赖
-npm install
+pnpm install
 
 # 运行测试
 npm test
