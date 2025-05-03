@@ -12,7 +12,7 @@
 
 ### 一键安装
 ```bash
-git clone --depth=1 https://github.com/yjiuzeyuli/jiujiu-plugin.git ./plugins/jiujiu-plugin
+git clone --depth=1 https://github.com/jiuzeyuli/jiujiu-plugin.git ./plugins/jiujiu-plugin
 cd plugins/jiujiu-plugin && npm install
 ```
 
