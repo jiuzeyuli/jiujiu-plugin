@@ -1,0 +1,154 @@
+{
+  "$schema": "./schema.json",
+  "meta": {
+    "configVersion": "1.2.0",
+    "description": "jiujiu-plugin 默认配置 - 请勿直接修改，自定义配置请写入 local.json"
+  },
+
+  // ==================== 核心模块 ====================
+  "core": {
+    "debug": false,
+    "logLevel": "info",
+    "dataPath": "./data/jiujiu",
+    "autoReload": true,
+    "performance": {
+      "gcInterval": 3600,
+      "maxMemory": "512MB"
+    }
+  },
+
+  // ==================== 图片模块 ====================
+  "image": {
+    "local": {
+      "path": "./resources/images",
+      "maxSize": "100MB",
+      "allowedExtensions": [".jpg", ".jpeg", ".png", ".webp"],
+      "scanInterval": 300,
+      "watchChanges": true
+    },
+    "web": {
+      "apis": [
+        {
+          "url": "https://picsum.photos/500/500",
+          "weight": 5
+        },
+        {
+          "url": "https://source.unsplash.com/random/500x500",
+          "weight": 3
+        },
+        {
+          "url": "https://api.ixiaowai.cn/api/api.php",
+          "weight": 2
+        }
+      ],
+      "timeout": 8000,
+      "retry": {
+        "times": 2,
+        "delay": 1000
+      },
+      "proxy": null
+    },
+    "processing": {
+      "maxWidth": 2000,
+      "maxHeight": 2000,
+      "quality": 85
+    }
+  },
+
+  // ==================== 缓存模块 ====================
+  "cache": {
+    "strategy": "hybrid", // hybrid/memory/disk
+    "memory": {
+      "maxItems": 200,
+      "ttl": 7200
+    },
+    "disk": {
+      "path": "./data/cache",
+      "maxSize": "1GB",
+      "compression": {
+        "enable": true,
+        "level": 6
+      }
+    }
+  },
+
+  // ==================== 命令模块 ====================
+  "commands": {
+    "prefix": "#",
+    "aliases": {
+      "random": ["随机图片", "来张图"],
+      "web": ["网络图片", "来张网络图"]
+    },
+    "cooldown": {
+      "global": 1000,
+      "specific": {
+        "random": 3000,
+        "web": 5000,
+        "admin": 0
+      }
+    },
+    "permissions": {
+      "admin": ["master"],
+      "update": ["owner"]
+    }
+  },
+
+  // ==================== 更新模块 ====================
+  "update": {
+    "channel": "stable", // stable/beta/alpha
+    "autoCheck": true,
+    "checkInterval": 43200,
+    "backup": {
+      "beforeUpdate": true,
+      "maxBackups": 3,
+      "path": "./data/backups"
+    },
+    "notify": {
+      "success": true,
+      "failed": true
+    }
+  },
+
+  // ==================== 数据库模块 ====================
+  "database": {
+    "type": "sqlite",
+    "path": "./data/jiujiu.db",
+    "optimization": {
+      "journalMode": "WAL",
+      "cacheSize": -2000,
+      "synchronous": "NORMAL"
+    },
+    "tables": {
+      "usage": {
+        "autoVacuum": true,
+        "statsRetention": "30d"
+      }
+    }
+  },
+
+  // ==================== 安全模块 ====================
+  "security": {
+    "rateLimit": {
+      "enable": true,
+      "window": "1m",
+      "max": 30
+    },
+    "validation": {
+      "imageSignature": false,
+      "maxFileDepth": 5
+    }
+  },
+
+  // ==================== 通知模块 ====================
+  "notification": {
+    "format": {
+      "image": "[{time}] {user} 获取了图片: {source}",
+      "error": "⚠️ 错误: {error}"
+    },
+    "methods": {
+      "console": true,
+      "logFile": true,
+      "botNotice": false
+    }
+  }
+}

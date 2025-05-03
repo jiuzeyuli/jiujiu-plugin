@@ -1,0 +1,90 @@
+{
+  // ====================== 核心配置 ======================
+  "core": {
+    "debug": false,                      // 调试模式（输出详细日志）
+    "logLevel": "info",                  // 日志级别：error/warn/info/debug
+    "dataPath": "./data/jiujiu",         // 插件数据存储目录
+    "maxCacheAge": 86400                 // 缓存最大存活时间（秒）
+  },
+
+  // ====================== 图片配置 ======================
+  "image": {
+    "local": {
+      "path": "./resources/images",      // 本地图片目录路径
+      "maxSize": "100MB",                // 单张图片大小限制（支持KB/MB/GB）
+      "allowedTypes": [".jpg", ".png"],  // 允许的图片格式
+      "scanInterval": 3600               // 目录扫描间隔（秒）
+    },
+    "web": {
+      "apis": [                          // 网络图片API列表
+        "https://picsum.photos/500/500",
+        "https://source.unsplash.com/random/500x500",
+        "https://api.ixiaowai.cn/api/api.php"
+      ],
+      "timeout": 5000,                   // 请求超时时间（毫秒）
+      "retryTimes": 2                    // 失败重试次数
+    }
+  },
+
+  // ====================== 缓存配置 ======================
+  "cache": {
+    "memory": {
+      "maxItems": 200,                   // 内存缓存最大条目数
+      "ttl": 3600                        // 缓存存活时间（秒）
+    },
+    "disk": {
+      "path": "./data/cache",            // 磁盘缓存路径
+      "maxSize": "500MB",                // 最大缓存大小
+      "compression": true                // 是否启用压缩
+    }
+  },
+
+  // ====================== 命令配置 ======================
+  "commands": {
+    "prefix": "#",                      // 触发指令前缀
+    "cooldowns": {                      // 命令冷却时间（毫秒）
+      "random": 3000,                   // 随机图片命令
+      "web": 5000,                      // 网络图片命令
+      "admin": 1000                     // 管理命令
+    },
+    "limits": {                         // 使用限制
+      "dailyPerUser": 30,               // 单用户每日上限
+      "dailyTotal": 1000                // 全局每日上限
+    }
+  },
+
+  // ====================== 更新配置 ======================
+  "update": {
+    "autoCheck": true,                  // 自动检查更新
+    "checkInterval": 86400,             // 检查间隔（秒）
+    "backup": {                         // 备份配置
+      "enable": true,                   // 是否启用备份
+      "maxBackups": 5,                  // 最大备份数量
+      "path": "./data/backups"          // 备份存储路径
+    }
+  },
+
+  // ====================== 高级配置 ======================
+  "advanced": {
+    "database": {                       // 数据库配置
+      "optimize": {                     // 性能优化
+        "journalMode": "WAL",           // SQLite日志模式
+        "synchronous": "NORMAL"         // 同步模式
+      }
+    },
+    "proxy": {                          // 代理配置（可选）
+      "enable": false,                  // 是否启用代理
+      "host": "127.0.0.1",             // 代理地址
+      "port": 1080                      // 代理端口
+    }
+  },
+
+  // ====================== 自定义配置 ======================
+  "custom": {
+    "watermark": {                      // 水印设置（可选）
+      "enable": false,                  // 是否启用水印
+      "text": "Powered by jiujiu",      // 水印文字
+      "position": "bottom-right"        // 位置：top-left/center 等
+    }
+  }
+}

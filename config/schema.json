@@ -1,0 +1,203 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/yourname/jiujiu-plugin/config/schema.json",
+  "title": "jiujiu-plugin 配置规范",
+  "description": "Yunzai-Bot 图片插件配置验证规则",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["core", "image", "commands"],
+  "definitions": {
+    "sizeString": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+)?[KMG]?B$",
+      "examples": ["500KB", "10MB", "1.5GB"]
+    },
+    "pathString": {
+      "type": "string",
+      "pattern": "^(\./|/|[A-Za-z]:)",
+      "minLength": 1
+    },
+    "durationString": {
+      "type": "string",
+      "pattern": "^\\d+[smh]$",
+      "examples": ["30s", "5m", "2h"]
+    }
+  },
+  "properties": {
+    "core": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "debug": { "type": "boolean", "default": false },
+        "logLevel": {
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug", "silly"],
+          "default": "info"
+        },
+        "dataPath": {
+          "$ref": "#/definitions/pathString",
+          "default": "./data/jiujiu"
+        },
+        "autoReload": { "type": "boolean", "default": true },
+        "performance": {
+          "type": "object",
+          "properties": {
+            "gcInterval": {
+              "type": "integer",
+              "minimum": 60,
+              "default": 3600
+            },
+            "maxMemory": {
+              "$ref": "#/definitions/sizeString",
+              "default": "512MB"
+            }
+          }
+        }
+      },
+      "required": ["logLevel", "dataPath"]
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["local", "web"],
+      "properties": {
+        "local": {
+          "type": "object",
+          "properties": {
+            "path": { "$ref": "#/definitions/pathString" },
+            "maxSize": { "$ref": "#/definitions/sizeString" },
+            "allowedExtensions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^\\.[a-zA-Z0-9]+$"
+              },
+              "minItems": 1,
+              "default": [".jpg", ".jpeg", ".png", ".webp"]
+            },
+            "scanInterval": {
+              "type": "integer",
+              "minimum": 10,
+              "default": 300
+            },
+            "watchChanges": { "type": "boolean", "default": true }
+          },
+          "required": ["path", "maxSize"]
+        },
+        "web": {
+          "type": "object",
+          "properties": {
+            "apis": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "weight": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                  }
+                },
+                "required": ["url"]
+              },
+              "minItems": 1,
+              "default": [
+                { "url": "https://picsum.photos/500/500", "weight": 5 },
+                { "url": "https://source.unsplash.com/random/500x500", "weight": 3 }
+              ]
+            },
+            "timeout": {
+              "type": "integer",
+              "minimum": 1000,
+              "default": 5000
+            },
+            "retry": {
+              "type": "object",
+              "properties": {
+                "times": { "type": "integer", "minimum": 0, "default": 2 },
+                "delay": { "type": "integer", "minimum": 0, "default": 1000 }
+              }
+            },
+            "proxy": { "type": ["string", "null"], "format": "uri" }
+          },
+          "required": ["apis"]
+        },
+        "processing": {
+          "type": "object",
+          "properties": {
+            "maxWidth": { "type": "integer", "minimum": 100, "default": 2000 },
+            "maxHeight": { "type": "integer", "minimum": 100, "default": 2000 },
+            "quality": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 85
+            }
+          }
+        }
+      }
+    },
+    "commands": {
+      "type": "object",
+      "required": ["prefix"],
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3,
+          "default": "#"
+        },
+        "aliases": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z]+$": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          },
+          "default": {
+            "random": ["随机图片", "来张图"],
+            "web": ["网络图片", "来张网络图"]
+          }
+        },
+        "cooldown": {
+          "type": "object",
+          "properties": {
+            "global": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 1000
+            },
+            "specific": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z]+$": { "type": "integer", "minimum": 0 }
+              },
+              "default": {
+                "random": 3000,
+                "web": 5000
+              }
+            }
+          }
+        },
+        "permissions": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z]+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["master", "owner", "admin", "user"]
+              }
+            }
+          },
+          "default": {
+            "admin": ["master"],
+            "update": ["owner"]
+          }
+        }
+      }
+    }
+  }
+}
