@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yourname/jiujiu-plugin/schema.json",
+  "$id": "https://github.com/jiuzeyuli/jiujiu-plugin/schema.json",
   "title": "jiujiu-plugin 配置规范",
   "description": "基于 assets 目录结构的配置校验规则",
   "type": "object",

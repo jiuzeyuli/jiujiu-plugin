@@ -5,7 +5,7 @@ import fs from 'fs/promises'
 export default class Updater {
   constructor(plugin) {
     this.plugin = plugin
-    this.repo = 'yourname/jiujiu-plugin'
+    this.repo = 'jiuzeyuli/jiujiu-plugin'
   }
 
   async check(force = false) {

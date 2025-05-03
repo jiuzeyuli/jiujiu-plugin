@@ -23,16 +23,16 @@
     "image",
     "random"
   ],
-  "author": "YourName <your.email@example.com>",
+  "author": "jiuzeyuli <1558533515@qq.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/jiujiu-plugin.git"
+    "url": "https://github.com/jiuzeyuli/jiujiu-plugin.git"
   },
   "bugs": {
-    "url": "https://github.com/yourname/jiujiu-plugin/issues"
+    "url": "https://github.com/jiuzeyuli/jiujiu-plugin/issues"
   },
-  "homepage": "https://github.com/yourname/jiujiu-plugin#readme",
+  "homepage": "https://github.com/jiuzeyuli/jiujiu-plugin#readme",
   "engines": {
     "node": ">=16.0.0",
     "yunzai": ">=3.0.0"
