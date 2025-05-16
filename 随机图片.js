@@ -79,7 +79,7 @@ export class RandomImage extends plugin {
         return this.reply(this.usageGuide());
       }
 
-      // 下载并保存图片·
+      // 下载并保存图片
       const { filePath, filename } = await this.processImage(
         imageUrl,
         customName
