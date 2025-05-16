@@ -20,7 +20,7 @@
 复制一下命令执行：
 
 ```bash
-curl -o "./plugins/example/随机图片.js" "https://github.com/jiuzeyuli/jiujiu-plugin/blob/main/随机图片.js"
+curl -o "./plugins/example/随机图片.js" "https://raw.githubusercontent.com/jiuzeyuli/jiujiu-plugin/blob/main/随机图片.js"
 ```
 
 手动安装：
