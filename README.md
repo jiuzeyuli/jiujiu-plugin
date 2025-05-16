@@ -25,7 +25,7 @@ curl -o "./plugins/example/随机图片.js" "https://raw.githubusercontent.com/j
 
 手动安装：
 
-使用直链 [点我下载](https://218-60-174-4.pd1.cjjd19.com:30443/download-cdn.cjjd19.com/123-369/c63aa4eb/1832027538-0/c63aa4eb370a2e50fd444bd77217cd71/c-m65?v=5&t=1747498874&s=17474988745d880208587ef5796afdb814278bc03a&r=31P224&bzc=2&bzs=313833323032373533383a32343334303634353a393230313a30&filename=%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%89%87.js&x-mf-biz-cid=e7316c85-308a-4c25-87f0-ef028af63cba-c4937c&auto_redirect=0&cache_type=1&xmfcid=3f2965c8-1ddf-4c18-b6fc-d14dc81b874f-1-9eed82220)
+使用直链 `[点我下载](https://218-60-174-4.pd1.cjjd19.com:30443/download-cdn.cjjd19.com/123-369/c63aa4eb/1832027538-0/c63aa4eb370a2e50fd444bd77217cd71/c-m65?v=5&t=1747498874&s=17474988745d880208587ef5796afdb814278bc03a&r=31P224&bzc=2&bzs=313833323032373533383a32343334303634353a393230313a30&filename=%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%89%87.js&x-mf-biz-cid=e7316c85-308a-4c25-87f0-ef028af63cba-c4937c&auto_redirect=0&cache_type=1&xmfcid=3f2965c8-1ddf-4c18-b6fc-d14dc81b874f-1-9eed82220)`
 `下载.js 文件放置在"Yunzai/plugins/example"内`
 
 ## 2.安装依赖
@@ -36,11 +36,11 @@ pnpm add axios
 
 ### 本地上传图片
 
-[附带图片] &添加图片 团队合照（重命名可选）
+`[附带图片] &添加图片 团队合照（重命名可选）`
 
 ### URL 上传图片
 
-&添加图片 URL 新名称（可选）
+`&添加图片 URL 新名称（可选）`
 
 ### 图片目录
 
