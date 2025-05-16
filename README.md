@@ -25,7 +25,7 @@ curl -o "./plugins/example/随机图片.js" "https://github.com/jiuzeyuli/jiujiu
 
 手动安装：
 
-[点我下载] (https://github.com/2f5c1947-39db-4c9d-b2d6-22420385d684)直链`下载.js 文件放置在"Yunzai/plugins/example"内`
+`下载.js 文件放置在"Yunzai/plugins/example"内`
 
 ## 2.安装依赖
 
