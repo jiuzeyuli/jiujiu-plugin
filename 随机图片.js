@@ -7,7 +7,7 @@ export class RandomImage extends plugin {
   constructor() {
     super({
       name: '终极图片管家',
-      dsc: '支持本地上传和URL添加的图片管理',
+      dsc: '支持本地上传、URL添加和引用添加的图片管理',
       event: 'message',
       priority: 999,
       rule: [
@@ -41,9 +41,8 @@ export class RandomImage extends plugin {
       ]
     });
 
-    // 初始化配置
     this.imageDir = path.join(process.cwd(), 'data/images');
-    this.maxFileSize = 10 * 1024 * 1024; // 10MB限制
+    this.maxFileSize = 10 * 1024 * 1024;
     this.initStorage();
   }
 
@@ -59,28 +58,41 @@ export class RandomImage extends plugin {
     }
   }
 
-  /** 核心添加方法（双模式支持） */
+  /** 核心添加方法（三模式支持） */
   async addImage() {
     if (!this.e.isMaster) return this.reply('❌ 管理员专属功能');
     
     try {
       let imageUrl, customName;
 
-      // 模式1：本地上传（用户发送了图片）
-      if (this.e.img?.[0]) {
+      // 模式0：引用消息添加（最高优先级）
+      if (this.e.source) {
+        const quotedMsg = await this.e.group.getMsg(this.e.source.seq);
+        if (!quotedMsg) throw new Error('message_expired');
+        
+        imageUrl = quotedMsg.img?.[0];
+        if (!imageUrl) throw new Error('no_image_in_quote');
+        
+        const [_, name] = this.e.msg.match(/^&添加图片\s*(.+)?$/) || [];
+        customName = name || this.generateDefaultName();
+      }
+      
+      // 模式1：本地上传（当前消息含图）
+      if (!imageUrl && this.e.img?.[0]) {
         imageUrl = this.e.img[0];
         const [_, name] = this.e.msg.match(/^&添加图片\s*(.+)?$/) || [];
         customName = name || this.generateDefaultName();
       }
-      // 模式2：URL添加（用户输入了URL）
-      else {
+      
+      // 模式2：URL添加（最后处理）
+      if (!imageUrl) {
         const [_, url, name] = this.e.msg.match(/^&添加图片\s+(https?:\/\/\S+)(?:\s+(.+))?$/) || [];
-        if (!url) return this.reply(this.usageGuide());
+        if (!url) throw new Error('invalid_input');
         imageUrl = url;
         customName = name || this.generateFilenameFromUrl(url);
       }
 
-      // 处理图片
+      // 统一处理流程
       const { filePath, filename } = await this.processImage(imageUrl, customName);
       const index = this.getImageList().indexOf(filename) + 1;
 
@@ -264,16 +276,6 @@ export class RandomImage extends plugin {
     }
   }
 
-  /** URL有效性验证 */
-  isValidUrl(str) {
-    try {
-      new URL(str);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   /** 生成安全文件名 */
   sanitizeName(name) {
     return name.replace(/[<>:"/\\|?*]/g, '')
@@ -301,7 +303,10 @@ export class RandomImage extends plugin {
       invalid_content_type: '❌ 非图片文件',
       file_exists: '⚠️ 文件名已存在',
       HTTP_404: '🔗 图片不存在',
-      HTTP_403: '🔒 无访问权限'
+      HTTP_403: '🔒 无访问权限',
+      message_expired: '⏳ 被引用的消息已过期',
+      no_image_in_quote: '❌ 引用消息中无图片',
+      invalid_input: '📝 指令格式错误'
     };
     return errors[err.message] || `未知错误：${err.message}`;
   }
@@ -310,14 +315,16 @@ export class RandomImage extends plugin {
   usageGuide() {
     return [
       '📚 使用指南：',
-      '方式1：发送图片后输入 &添加图片 名称',
-      '方式2：输入 &添加图片 [图片URL] [名称]',
+      '方式1：引用图片消息后发送 &添加图片 [名称]',
+      '方式2：直接发送图片+指令 &添加图片 [名称]',
+      '方式3：输入 &添加图片 [图片URL] [名称]',
       '示例：',
-      '  &添加图片 https://example.com/image.jpg 示例图片',
-      '  &添加图片 本地图片名称',
+      '  • 引用图片消息后输入 &添加图片 猫猫表情',
+      '  • &添加图片 https://example.com/img.jpg 示例图片',
       '⚠️ 注意事项：',
       '  • 最大支持10MB图片',
-      '  • 名称不能包含特殊字符'
+      '  • 名称不能包含特殊字符',
+      '  • 引用消息需在24小时内'
     ].join('\n');
   }
 
