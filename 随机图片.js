@@ -7,7 +7,7 @@ export class RandomImage extends plugin {
   constructor() {
     super({
       name: '终极图片管家',
-      dsc: '支持本地上传和URL添加的图片管理',
+      dsc: '支持本地上传、URL添加和引用添加的图片管理',
       event: 'message',
       priority: 999,
       rule: [
@@ -43,7 +43,7 @@ export class RandomImage extends plugin {
 
     // 初始化配置
     this.imageDir = path.join(process.cwd(), 'data/images');
-    this.maxFileSize = 10 * 1024 * 1024; // 10MB限制
+    this.maxFileSize = 30 * 1024 * 1024; // 30MB限制
     this.initStorage();
   }
 
@@ -59,28 +59,34 @@ export class RandomImage extends plugin {
     }
   }
 
-  /** 核心添加方法（双模式支持） */
+  /** 核心添加方法 */
   async addImage() {
     if (!this.e.isMaster) return this.reply('❌ 管理员专属功能');
     
     try {
       let imageUrl, customName;
 
-      // 模式1：本地上传（用户发送了图片）
-      if (this.e.img?.[0]) {
+      // 三种添加模式
+      if (this.e.img?.[0]) { // 本地上传
         imageUrl = this.e.img[0];
         const [_, name] = this.e.msg.match(/^&添加图片\s*(.+)?$/) || [];
         customName = name || this.generateDefaultName();
-      }
-      // 模式2：URL添加（用户输入了URL）
-      else {
+      } 
+      else if (this.e.msg.includes('http')) { // URL添加
         const [_, url, name] = this.e.msg.match(/^&添加图片\s+(https?:\/\/\S+)(?:\s+(.+))?$/) || [];
         if (!url) return this.reply(this.usageGuide());
         imageUrl = url;
         customName = name || this.generateFilenameFromUrl(url);
       }
+      else if (this.e.quote?.message?.image?.[0]) { // 引用添加
+        imageUrl = this.e.quote.message.image[0];
+        const [_, name] = this.e.msg.match(/^&添加图片\s*(.+)?$/) || [];
+        customName = name || this.generateDefaultName();
+      }
+      else {
+        return this.reply(this.usageGuide());
+      }
 
-      // 处理图片
       const { filePath, filename } = await this.processImage(imageUrl, customName);
       const index = this.getImageList().indexOf(filename) + 1;
 
@@ -99,46 +105,33 @@ export class RandomImage extends plugin {
 
   /** 图片处理流水线 */
   async processImage(url, name) {
-    // 下载验证
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
-      timeout: 20000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': 'image/webp,image/apng,image/*,*/*'
-      },
+      timeout: 30000,
+      headers: { 'User-Agent': 'Mozilla/5.0' },
       maxContentLength: this.maxFileSize
     });
 
-    // 验证响应状态
     if (response.status !== 200) throw new Error(`HTTP_${response.status}`);
     
-    // 验证内容类型
     const contentType = response.headers['content-type'];
-    if (!contentType?.startsWith('image/')) {
-      throw new Error('invalid_content_type');
-    }
+    if (!contentType?.startsWith('image/')) throw new Error('invalid_content_type');
 
-    // 生成安全文件名
     const ext = this.getFileExtension(contentType);
     const filename = `${this.sanitizeName(name)}.${ext}`;
     const filePath = path.join(this.imageDir, filename);
 
-    // 避免重复
     if (fs.existsSync(filePath)) throw new Error('file_exists');
-
-    // 保存文件
     fs.writeFileSync(filePath, response.data);
     
     return { filePath, filename };
   }
 
-  /** 随机展示图片 */
+  /** 随机展示 */
   async sendRandomImage() {
     try {
       const files = this.getImageList();
       if (!files.length) return this.reply('📭 图库为空');
-      
       const randomFile = files[Math.floor(Math.random() * files.length)];
       await this.reply(segment.image(`file:///${path.join(this.imageDir, randomFile)}`));
     } catch (err) {
@@ -152,7 +145,7 @@ export class RandomImage extends plugin {
       const files = this.getImageList();
       const index = parseInt(this.e.msg.match(/^&查看图片\s+(\d+)$/)[1]) - 1;
       
-      if (index < 0 || index >= files.length) {
+      if (index < 0 || index >= files.length)) {
         return this.reply(`❌ 编号错误，当前共 ${files.length} 张图片`);
       }
 
@@ -162,25 +155,22 @@ export class RandomImage extends plugin {
     }
   }
 
-  /** 重命名功能 */
+  /** 重命名图片 */
   async renameImage() {
     try {
       const files = this.getImageList();
       const [_, numStr, newName] = this.e.msg.match(/^&重命名图片\s+(\d+)\s+(.+)$/);
       const index = parseInt(numStr) - 1;
 
-      // 参数验证
-      if (index < 0 || index >= files.length) {
+      if (index < 0 || index >= files.length)) {
         return this.reply(`❌ 编号错误，当前共 ${files.length} 张图片`);
       }
 
-      // 处理文件名
       const cleanName = this.sanitizeName(newName);
       const oldPath = path.join(this.imageDir, files[index]);
       const ext = path.extname(oldPath);
       const newPath = path.join(this.imageDir, `${cleanName}${ext}`);
 
-      // 避免冲突
       if (fs.existsSync(newPath)) throw new Error('file_exists');
       fs.renameSync(oldPath, newPath);
 
@@ -227,15 +217,13 @@ export class RandomImage extends plugin {
       const files = this.getImageList();
       const index = parseInt(this.e.msg.match(/^&删除图片\s+(\d+)$/)[1]) - 1;
       
-      // 参数验证
-      if (index < 0 || index >= files.length) {
+      if (index < 0 || index >= files.length)) {
         return this.reply(`❌ 编号错误，当前共 ${files.length} 张图片`);
       }
 
       const filePath = path.join(this.imageDir, files[index]);
       const preview = segment.image(`file:///${filePath}`);
       
-      // 执行删除
       fs.unlinkSync(filePath);
       await this.reply([
         preview,
@@ -261,16 +249,6 @@ export class RandomImage extends plugin {
         );
     } catch (err) {
       return [];
-    }
-  }
-
-  /** URL有效性验证 */
-  isValidUrl(str) {
-    try {
-      new URL(str);
-      return true;
-    } catch {
-      return false;
     }
   }
 
@@ -301,7 +279,8 @@ export class RandomImage extends plugin {
       invalid_content_type: '❌ 非图片文件',
       file_exists: '⚠️ 文件名已存在',
       HTTP_404: '🔗 图片不存在',
-      HTTP_403: '🔒 无访问权限'
+      HTTP_403: '🔒 无访问权限',
+      ERR_FR_MAX_BODY_LENGTH_EXCEEDED: '📁 文件超过30MB限制'
     };
     return errors[err.message] || `未知错误：${err.message}`;
   }
@@ -312,11 +291,13 @@ export class RandomImage extends plugin {
       '📚 使用指南：',
       '方式1：发送图片后输入 &添加图片 名称',
       '方式2：输入 &添加图片 [图片URL] [名称]',
+      '方式3：引用包含图片的消息并输入 &添加图片 [名称]',
       '示例：',
       '  &添加图片 https://example.com/image.jpg 示例图片',
       '  &添加图片 本地图片名称',
+      '  （引用图片消息）&添加图片 引用图片',
       '⚠️ 注意事项：',
-      '  • 最大支持10MB图片',
+      '  • 最大支持30MB图片',
       '  • 名称不能包含特殊字符'
     ].join('\n');
   }
