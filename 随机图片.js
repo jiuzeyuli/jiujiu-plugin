@@ -11,39 +11,20 @@ export class RandomImage extends plugin {
       event: 'message',
       priority: 999,
       rule: [
-        {
-          reg: '^&随机图片$',
-          fnc: 'sendRandomImage'
-        },
-        {
-          reg: '^&查看图片\\s+(\\d+)$',
-          fnc: 'viewSpecificImage'
-        },
-        {
-          reg: '^&重命名图片\\s+(\\d+)\\s+(.+)$',
-          fnc: 'renameImage',
-          permission: 'master'
-        },
-        {
-          reg: '^&添加图片(?:\\s+(.+))?$',
-          fnc: 'addImage',
-          permission: 'master'
-        },
-        {
-          reg: '^&图片列表$',
-          fnc: 'listImages'
-        },
-        {
-          reg: '^&删除图片\\s+(\\d+)$',
-          fnc: 'deleteImage',
-          permission: 'master'
-        }
+        { reg: '^&随机图片$', fnc: 'sendRandomImage' },
+        { reg: '^&查看图片\\s+(\\d+)$', fnc: 'viewSpecificImage' },
+        { reg: '^&重命名图片\\s+(\\d+)\\s+(.+)$', fnc: 'renameImage', permission: 'master' },
+        { reg: '^&添加图片(?:\\s+(.+))?$', fnc: 'addImage', permission: 'master' },
+        { reg: '^&图片列表$', fnc: 'listImages' },
+        { reg: '^&删除图片\\s+(\\d+)$', fnc: 'deleteImage', permission: 'master' },
+        { reg: '^&设置图片大小\\s+(\\d+)(MB|KB)$', fnc: 'setMaxFileSize', permission: 'master' },
+        { reg: '^&帮助$', fnc: 'help' }
       ]
     });
 
-    // 初始化配置
     this.imageDir = path.join(process.cwd(), 'data/images');
-    this.maxFileSize = 10 * 1024 * 1024; // 10MB限制
+    this.configPath = path.join(process.cwd(), 'data/image_config.json');
+    this.loadConfig();
     this.initStorage();
   }
 
@@ -59,28 +40,103 @@ export class RandomImage extends plugin {
     }
   }
 
-  /** 核心添加方法（双模式支持） */
+  /** 加载配置文件 */
+  loadConfig() {
+    try {
+      if (fs.existsSync(this.configPath)) {
+        const config = JSON.parse(fs.readFileSync(this.configPath, 'utf8'));
+        this.maxFileSize = config.maxFileSize || 10 * 1024 * 1024;
+        this.allowedTypes = config.allowedTypes || ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      } else {
+        this.maxFileSize = 10 * 1024 * 1024;
+        this.allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        this.saveConfig();
+      }
+    } catch (err) {
+      console.error('配置加载失败:', err);
+      this.maxFileSize = 10 * 1024 * 1024;
+      this.allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    }
+  }
+
+  /** 保存配置 */
+  saveConfig() {
+    const config = { 
+      maxFileSize: this.maxFileSize,
+      allowedTypes: this.allowedTypes
+    };
+    fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
+  }
+
+  /** 设置文件大小限制 */
+  async setMaxFileSize() {
+    try {
+      const match = this.e.msg.match(/^&设置图片大小\s+(\d+)(MB|KB)$/);
+      if (!match) throw new Error('格式错误');
+      
+      const size = parseInt(match[1]);
+      const unit = match[2];
+      const multiplier = unit === 'MB' ? 1024 * 1024 : 1024;
+      const newSize = size * multiplier;
+
+      if (newSize < 1048576 || newSize > 104857600) {
+        return this.reply('❌ 大小范围：1MB ~ 100MB');
+      }
+
+      this.maxFileSize = newSize;
+      this.saveConfig();
+      this.reply(`✅ 已设置图片大小限制为 ${size}${unit}`);
+    } catch (err) {
+      this.reply('❌ 格式错误，正确示例：&设置图片大小 15MB');
+    }
+  }
+
+  /** 帮助信息 */
+  async help() {
+    const helpMsg = [
+      '📖 图片管家使用指南',
+      '=======================',
+      '基础指令：',
+      '&随机图片 - 随机发送图片',
+      '&查看图片 [编号] - 查看指定图片',
+      '&图片列表 - 显示所有图片',
+      '&帮助 - 显示本帮助信息',
+      '',
+      '⚙️ 管理指令：',
+      '&添加图片 [名称/URL] - 添加图片',
+      '&重命名图片 [编号] [新名] - 修改名称',
+      '&删除图片 [编号] - 删除图片',
+      '&设置图片大小 [数值][单位] - 修改大小限制',
+      '',
+      '⚡ 当前配置：',
+      `• 最大文件大小：${this.formatSize(this.maxFileSize)}`,
+      `• 支持格式：${this.allowedTypes.join(', ')}`,
+      '======================='
+    ].join('\n');
+    await this.reply(helpMsg);
+  }
+
+  /** 核心添加方法 */
   async addImage() {
     if (!this.e.isMaster) return this.reply('❌ 管理员专属功能');
     
     try {
       let imageUrl, customName;
 
-      // 模式1：本地上传（用户发送了图片）
+      // 模式1：本地上传
       if (this.e.img?.[0]) {
         imageUrl = this.e.img[0];
-        const [_, name] = this.e.msg.match(/^&添加图片\s*(.+)?$/) || [];
-        customName = name || this.generateDefaultName();
-      }
-      // 模式2：URL添加（用户输入了URL）
+        const match = this.e.msg.match(/^&添加图片\s*(.+)?$/);
+        customName = match?.[1] || this.generateDefaultName();
+      } 
+      // 模式2：URL添加
       else {
-        const [_, url, name] = this.e.msg.match(/^&添加图片\s+(https?:\/\/\S+)(?:\s+(.+))?$/) || [];
-        if (!url) return this.reply(this.usageGuide());
-        imageUrl = url;
-        customName = name || this.generateFilenameFromUrl(url);
+        const match = this.e.msg.match(/^&添加图片\s+(https?:\/\/\S+)(?:\s+(.+))?$/);
+        if (!match) return this.reply(this.usageGuide());
+        imageUrl = match[1];
+        customName = match[2] || this.generateFilenameFromUrl(match[1]);
       }
 
-      // 处理图片
       const { filePath, filename } = await this.processImage(imageUrl, customName);
       const index = this.getImageList().indexOf(filename) + 1;
 
@@ -90,7 +146,6 @@ export class RandomImage extends plugin {
         `📛 名称：${filename}`,
         `🎯 编号：${index}`
       ]);
-      
     } catch (err) {
       this.reply(`‼️ 失败原因：${this.errorTranslator(err)}`);
       console.error('添加错误:', err.stack);
@@ -99,35 +154,25 @@ export class RandomImage extends plugin {
 
   /** 图片处理流水线 */
   async processImage(url, name) {
-    // 下载验证
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       timeout: 20000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': 'image/webp,image/apng,image/*,*/*'
-      },
+      headers: { 'User-Agent': 'Mozilla/5.0' },
       maxContentLength: this.maxFileSize
     });
 
-    // 验证响应状态
     if (response.status !== 200) throw new Error(`HTTP_${response.status}`);
     
-    // 验证内容类型
     const contentType = response.headers['content-type'];
-    if (!contentType?.startsWith('image/')) {
-      throw new Error('invalid_content_type');
+    const fileExt = this.getFileExtension(contentType);
+    if (!this.allowedTypes.includes(fileExt)) {
+      throw new Error(`invalid_type:${fileExt}`);
     }
 
-    // 生成安全文件名
-    const ext = this.getFileExtension(contentType);
-    const filename = `${this.sanitizeName(name)}.${ext}`;
+    const filename = `${this.sanitizeName(name)}.${fileExt}`;
     const filePath = path.join(this.imageDir, filename);
 
-    // 避免重复
     if (fs.existsSync(filePath)) throw new Error('file_exists');
-
-    // 保存文件
     fs.writeFileSync(filePath, response.data);
     
     return { filePath, filename };
@@ -166,21 +211,18 @@ export class RandomImage extends plugin {
   async renameImage() {
     try {
       const files = this.getImageList();
-      const [_, numStr, newName] = this.e.msg.match(/^&重命名图片\s+(\d+)\s+(.+)$/);
-      const index = parseInt(numStr) - 1;
+      const match = this.e.msg.match(/^&重命名图片\s+(\d+)\s+(.+)$/);
+      const index = parseInt(match[1]) - 1;
 
-      // 参数验证
       if (index < 0 || index >= files.length) {
         return this.reply(`❌ 编号错误，当前共 ${files.length} 张图片`);
       }
 
-      // 处理文件名
-      const cleanName = this.sanitizeName(newName);
+      const cleanName = this.sanitizeName(match[2]);
       const oldPath = path.join(this.imageDir, files[index]);
       const ext = path.extname(oldPath);
       const newPath = path.join(this.imageDir, `${cleanName}${ext}`);
 
-      // 避免冲突
       if (fs.existsSync(newPath)) throw new Error('file_exists');
       fs.renameSync(oldPath, newPath);
 
@@ -227,7 +269,6 @@ export class RandomImage extends plugin {
       const files = this.getImageList();
       const index = parseInt(this.e.msg.match(/^&删除图片\s+(\d+)$/)[1]) - 1;
       
-      // 参数验证
       if (index < 0 || index >= files.length) {
         return this.reply(`❌ 编号错误，当前共 ${files.length} 张图片`);
       }
@@ -235,7 +276,6 @@ export class RandomImage extends plugin {
       const filePath = path.join(this.imageDir, files[index]);
       const preview = segment.image(`file:///${filePath}`);
       
-      // 执行删除
       fs.unlinkSync(filePath);
       await this.reply([
         preview,
@@ -247,14 +287,11 @@ export class RandomImage extends plugin {
     }
   }
 
-  // ====== 工具方法 ====== //
-  
-  /** 获取图片列表 */
+  /** 工具方法 */
   getImageList() {
     try {
       return fs.readdirSync(this.imageDir)
-        .filter(file => ['.jpg','.jpeg','.png','.gif','.webp']
-          .includes(path.extname(file).toLowerCase()))
+        .filter(file => this.allowedTypes.includes(path.extname(file).toLowerCase().slice(1)))
         .sort((a, b) => 
           fs.statSync(path.join(this.imageDir, a)).birthtimeMs - 
           fs.statSync(path.join(this.imageDir, b)).birthtimeMs
@@ -264,17 +301,6 @@ export class RandomImage extends plugin {
     }
   }
 
-  /** URL有效性验证 */
-  isValidUrl(str) {
-    try {
-      new URL(str);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /** 生成安全文件名 */
   sanitizeName(name) {
     return name.replace(/[<>:"/\\|?*]/g, '')
       .replace(/\s+/g, '_')
@@ -282,10 +308,9 @@ export class RandomImage extends plugin {
       .trim() || '未命名';
   }
 
-  /** 获取文件扩展名 */
   getFileExtension(contentType) {
     const map = {
-      'image/jpeg': 'jpg',
+      'image/jpeg': 'jpeg',
       'image/png': 'png',
       'image/gif': 'gif',
       'image/webp': 'webp'
@@ -293,7 +318,6 @@ export class RandomImage extends plugin {
     return map[contentType.toLowerCase()] || 'jpg';
   }
 
-  /** 错误消息翻译 */
   errorTranslator(err) {
     const errors = {
       ECONNABORTED: '⏳ 下载超时',
@@ -301,12 +325,35 @@ export class RandomImage extends plugin {
       invalid_content_type: '❌ 非图片文件',
       file_exists: '⚠️ 文件名已存在',
       HTTP_404: '🔗 图片不存在',
-      HTTP_403: '🔒 无访问权限'
+      HTTP_403: '🔒 无访问权限',
+      invalid_type: (ext) => `❌ 不支持 ${ext} 格式文件`
     };
+    
+    if (err.message.startsWith('invalid_type')) {
+      return errors.invalid_type(err.message.split(':')[1]);
+    }
     return errors[err.message] || `未知错误：${err.message}`;
   }
 
-  /** 使用指南 */
+  formatSize(bytes) {
+    return bytes >= 1024 * 1024 
+      ? `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+      : `${(bytes / 1024).toFixed(1)}KB`;
+  }
+
+  generateDefaultName() {
+    return `图片_${Date.now().toString(36)}`;
+  }
+
+  generateFilenameFromUrl(url) {
+    try {
+      const pathname = new URL(url).pathname;
+      return path.basename(pathname, path.extname(pathname)) || '网络图片';
+    } catch {
+      return '网络图片';
+    }
+  }
+
   usageGuide() {
     return [
       '📚 使用指南：',
@@ -316,23 +363,8 @@ export class RandomImage extends plugin {
       '  &添加图片 https://example.com/image.jpg 示例图片',
       '  &添加图片 本地图片名称',
       '⚠️ 注意事项：',
-      '  • 最大支持10MB图片',
+      `  • 最大支持 ${this.formatSize(this.maxFileSize)} 图片`,
       '  • 名称不能包含特殊字符'
     ].join('\n');
-  }
-
-  /** 生成默认名称 */
-  generateDefaultName() {
-    return `图片_${Date.now().toString(36)}`;
-  }
-
-  /** 从URL生成默认名称 */
-  generateFilenameFromUrl(url) {
-    try {
-      const pathname = new URL(url).pathname;
-      return path.basename(pathname, path.extname(pathname)) || '网络图片';
-    } catch {
-      return '网络图片';
-    }
   }
 }
