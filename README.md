@@ -7,6 +7,7 @@
 | 指令                       | 需要管理员         | 说明               |
 | -------------------------- | ------------------ | ------------------ |
 | `所有指令后需加空格`       | 如&查看图片`空格`1 |                    |
+| `&帮助`                    | ❌                 | 查看指令           |
 | `&随机图片`                | ❌                 | 随机发送一张图片   |
 | `&查看图片 [编号]`         | ❌                 | 查看指定编号的图片 |
 | `&图片列表`                | ❌                 | 查看所有图片列表   |
@@ -25,7 +26,7 @@ curl -o "./plugins/example/随机图片.js" "https://raw.githubusercontent.com/j
 
 手动安装：
 
-使用直链 [点我下载](https://218-60-174-4.pd1.cjjd19.com:30443/download-cdn.cjjd19.com/123-369/c63aa4eb/1832027538-0/c63aa4eb370a2e50fd444bd77217cd71/c-m65?v=5&t=1747498874&s=17474988745d880208587ef5796afdb814278bc03a&r=31P224&bzc=2&bzs=313833323032373533383a32343334303634353a393230313a30&filename=%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%89%87.js&x-mf-biz-cid=e7316c85-308a-4c25-87f0-ef028af63cba-c4937c&auto_redirect=0&cache_type=1&xmfcid=3f2965c8-1ddf-4c18-b6fc-d14dc81b874f-1-9eed82220)
+使用直链 [点我下载](https://218-60-174-250.pd1.cjjd19.com:30443/download-cdn.cjjd19.com/123-567/31af38e6/1832027538-0/31af38e663312dd1452b3ca1b3f04237/c-m82?v=5&t=1747932700&s=1747932700d5e8d1a66ed40774bc0e664d85dffd59&r=XF49DQ&bzc=1&bzs=1832027538&filename=%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%89%87.js&x-mf-biz-cid=975e5e6c-fefc-457f-b640-270891aad5fd-3dab77&auto_redirect=0&cache_type=1&xmfcid=3252467d-a65d-4500-babb-0bdb6d6ad7de-0-9eed82220)
 下载.js 文件放置在`Yunzai/plugins/example`内.
 
 ## 2.安装依赖
