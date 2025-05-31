@@ -44,11 +44,13 @@ curl -o "./plugins/example/修仙渡劫.js" "https://raw.githubusercontent.com/j
 pnpm add axios
 ```
 
-## 3.修仙渡劫
+## 2.修仙渡劫
 
 ```bash
 pnpm add node-schedule
 ```
+
+### 发送`#修仙帮助` 获取修仙指令
 
 ### 本地上传图片
 
