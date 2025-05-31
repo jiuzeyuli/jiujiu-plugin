@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 import schedule from "node-schedule";
 
-export class Cultivation extends plugin {
+export class UltimateCultivation extends plugin {
   constructor() {
     super({
       name: "终极修仙渡劫系统",
-      dsc: "包含完整修仙体系的终极插件",
+      dsc: "全方位修仙体验，包含境界突破、天劫挑战、宗门争霸等完整玩法",
       event: "message",
       priority: 9999,
       rule: [
@@ -17,261 +17,76 @@ export class Cultivation extends plugin {
         { reg: "^#闭关\\s*(\\d+)?\\s*(天|时辰)?$", fnc: "seclusion" },
         { reg: "^#渡劫$", fnc: "tribulation" },
         { reg: "^#灵根测试$", fnc: "spiritRootTest" },
-        { reg: "^#丹药列表$", fnc: "viewPills" },
+        { reg: "^#丹药图鉴$", fnc: "viewPills" },
         { reg: "^#炼丹\\s+(\\d+)$", fnc: "alchemy" },
         { reg: "^#服用丹药\\s+(\\d+)$", fnc: "takePill" },
         { reg: "^#修仙排行榜$", fnc: "cultivationRank" },
         { reg: "^#领悟功法$", fnc: "comprehendArt" },
         { reg: "^#奇遇$", fnc: "adventure" },
-        { reg: "^#渡劫准备$", fnc: "tribulationPreparation" },
+        { reg: "^#天劫信息$", fnc: "tribulationInfo" },
         { reg: "^#挑战秘境\\s*(\\d+)?$", fnc: "challengeDungeon" },
         { reg: "^#双修\\s*@?(\\d+)?$", fnc: "dualCultivation" },
         { reg: "^#炼制法宝\\s*(\\d+)?$", fnc: "forgeArtifact" },
         { reg: "^#装备法宝\\s*(\\d+)?$", fnc: "equipArtifact" },
+        { reg: "^#法宝图鉴$", fnc: "viewArtifacts" },
         { reg: "^#宗门信息$", fnc: "sectInfo" },
         { reg: "^#加入宗门\\s*(\\S+)$", fnc: "joinSect" },
         { reg: "^#创建宗门\\s*(\\S+)$", fnc: "createSect" },
+        {
+          reg: "^#宗门管理\\s+(公告|解散|升级|传位)\\s*(.*)$",
+          fnc: "sectManagement",
+          permission: "master",
+        },
         { reg: "^#每日签到$", fnc: "dailySign" },
         { reg: "^#领取俸禄$", fnc: "claimSalary" },
-        { reg: "^#查看天劫$", fnc: "viewTribulationSystem" },
-        { reg: "^#查看功法$", fnc: "viewArtSystem" },
-        { reg: "^#查看宗门体系$", fnc: "viewSectSystem" },
-        { reg: "^#查看境界体系$", fnc: "viewRealmSystem" },
-        { reg: "^#查看法宝系统$", fnc: "viewArtifactSystem" },
-        { reg: "^#查看丹药系统$", fnc: "viewPillSystem" },
-        { reg: "^#查看灵石经济$", fnc: "viewEconomySystem" },
         { reg: "^#我的背包$", fnc: "viewInventory" },
         { reg: "^#使用物品\\s+(\\d+)$", fnc: "useItem" },
-        { reg: "^#修仙商店$", fnc: "viewShop" },
-        { reg: "^#购买物品\\s+(\\d+)\\s*(\\d+)?$", fnc: "buyItem" },
-        { reg: "^#出售物品\\s+(\\d+)\\s*(\\d+)?$", fnc: "sellItem" },
-        { reg: "^#强化法宝\\s+(\\d+)$", fnc: "enhanceArtifact" },
+        { reg: "^#修仙商店$", fnc: "cultivationShop" },
+        { reg: "^#购买\\s+(\\d+)\\s*(\\d+)?$", fnc: "buyItem" },
+        { reg: "^#境界体系$", fnc: "realmSystem" },
+        { reg: "^#功法大全$", fnc: "allArts" },
+        { reg: "^#天劫大全$", fnc: "allTribulations" },
+        { reg: "^#宗门列表$", fnc: "sectList" },
+        { reg: "^#宗门排行$", fnc: "sectRank" },
         { reg: "^#宗门任务$", fnc: "sectMission" },
-        { reg: "^#宗门商店$", fnc: "sectShop" },
-        { reg: "^#兑换贡献\\s+(\\d+)$", fnc: "exchangeContribution" },
-        { reg: "^#传功\\s*@?(\\d+)?$", fnc: "transferPower" },
-        { reg: "^#渡劫记录$", fnc: "tribulationRecords" },
+        { reg: "^#提交任务$", fnc: "submitMission" },
+        { reg: "^#炼器$", fnc: "artifactRefining" },
+        { reg: "^#渡劫准备$", fnc: "tribulationPreparation" },
       ],
     });
 
-    // 修仙境界体系
+    // 修仙境界体系 - 30个详细境界
     this.realms = [
-      {
-        id: 0,
-        name: "凡人",
-        maxExp: 100,
-        description: "尚未踏入修仙之路的普通人",
-      },
-      {
-        id: 1,
-        name: "炼气初期",
-        maxExp: 300,
-        description: "初步感应天地灵气，引气入体",
-      },
-      {
-        id: 2,
-        name: "炼气中期",
-        maxExp: 600,
-        description: "灵气在体内形成循环，强化肉身",
-      },
-      {
-        id: 3,
-        name: "炼气后期",
-        maxExp: 1000,
-        description: "灵气充盈，准备筑基",
-      },
-      {
-        id: 4,
-        name: "筑基初期",
-        maxExp: 3000,
-        description: "筑就道基，正式踏入修仙之路",
-      },
-      {
-        id: 5,
-        name: "筑基中期",
-        maxExp: 6000,
-        description: "道基稳固，灵力浑厚",
-      },
-      {
-        id: 6,
-        name: "筑基后期",
-        maxExp: 10000,
-        description: "道基圆满，准备结丹",
-      },
-      {
-        id: 7,
-        name: "金丹初期",
-        maxExp: 30000,
-        description: "凝聚金丹，寿元大增",
-      },
-      {
-        id: 8,
-        name: "金丹中期",
-        maxExp: 60000,
-        description: "金丹稳固，灵力凝练",
-      },
-      {
-        id: 9,
-        name: "金丹后期",
-        maxExp: 100000,
-        description: "金丹圆满，准备化婴",
-      },
-      {
-        id: 10,
-        name: "元婴初期",
-        maxExp: 300000,
-        description: "元婴初成，神识初开",
-      },
-      {
-        id: 11,
-        name: "元婴中期",
-        maxExp: 600000,
-        description: "元婴成长，神通初显",
-      },
-      {
-        id: 12,
-        name: "元婴后期",
-        maxExp: 1000000,
-        description: "元婴大成，准备化神",
-      },
-      {
-        id: 13,
-        name: "化神初期",
-        maxExp: 3000000,
-        description: "元神初成，感悟天地",
-      },
-      {
-        id: 14,
-        name: "化神中期",
-        maxExp: 6000000,
-        description: "元神稳固，神通广大",
-      },
-      {
-        id: 15,
-        name: "化神后期",
-        maxExp: 10000000,
-        description: "元神圆满，准备炼虚",
-      },
-      {
-        id: 16,
-        name: "炼虚初期",
-        maxExp: 30000000,
-        description: "炼虚合道，参悟法则",
-      },
-      {
-        id: 17,
-        name: "炼虚中期",
-        maxExp: 60000000,
-        description: "虚境稳固，掌握法则",
-      },
-      {
-        id: 18,
-        name: "炼虚后期",
-        maxExp: 100000000,
-        description: "虚境圆满，准备合体",
-      },
-      {
-        id: 19,
-        name: "合体初期",
-        maxExp: 300000000,
-        description: "元神与肉身合一",
-      },
-      {
-        id: 20,
-        name: "合体中期",
-        maxExp: 600000000,
-        description: "身神合一，神通自成",
-      },
-      {
-        id: 21,
-        name: "合体后期",
-        maxExp: 1000000000,
-        description: "身神圆满，准备大乘",
-      },
-      {
-        id: 22,
-        name: "大乘初期",
-        maxExp: 3000000000,
-        description: "大道初成，触摸仙门",
-      },
-      {
-        id: 23,
-        name: "大乘中期",
-        maxExp: 6000000000,
-        description: "道法自然，神通广大",
-      },
-      {
-        id: 24,
-        name: "大乘后期",
-        maxExp: 10000000000,
-        description: "大乘圆满，准备渡劫",
-      },
-      {
-        id: 25,
-        name: "渡劫初期",
-        maxExp: 30000000000,
-        description: "天劫降临，九死一生",
-      },
-      {
-        id: 26,
-        name: "渡劫中期",
-        maxExp: 60000000000,
-        description: "历经天劫，道体初成",
-      },
-      {
-        id: 27,
-        name: "渡劫后期",
-        maxExp: 100000000000,
-        description: "劫满飞升，羽化登仙",
-      },
-      {
-        id: 28,
-        name: "人仙",
-        maxExp: 300000000000,
-        description: "初入仙道，超凡脱俗",
-      },
-      {
-        id: 29,
-        name: "地仙",
-        maxExp: 600000000000,
-        description: "掌握大地之力，神通广大",
-      },
-      {
-        id: 30,
-        name: "天仙",
-        maxExp: 1000000000000,
-        description: "翱翔九天，逍遥自在",
-      },
-      {
-        id: 31,
-        name: "真仙",
-        maxExp: 3000000000000,
-        description: "仙体大成，万法不侵",
-      },
-      {
-        id: 32,
-        name: "玄仙",
-        maxExp: 6000000000000,
-        description: "参悟玄机，神通广大",
-      },
-      {
-        id: 33,
-        name: "金仙",
-        maxExp: 10000000000000,
-        description: "金身不灭，万劫不磨",
-      },
-      {
-        id: 34,
-        name: "太乙金仙",
-        maxExp: 30000000000000,
-        description: "掌握本源，神通无量",
-      },
-      {
-        id: 35,
-        name: "大罗金仙",
-        maxExp: 100000000000000,
-        description: "超脱时空，永恒不灭",
-      },
+      "凡人",
+      "炼气初期",
+      "炼气中期",
+      "炼气后期",
+      "筑基初期",
+      "筑基中期",
+      "筑基后期",
+      "金丹初期",
+      "金丹中期",
+      "金丹后期",
+      "元婴初期",
+      "元婴中期",
+      "元婴后期",
+      "化神初期",
+      "化神中期",
+      "化神后期",
+      "炼虚初期",
+      "炼虚中期",
+      "炼虚后期",
+      "合体初期",
+      "合体中期",
+      "合体后期",
+      "大乘初期",
+      "大乘中期",
+      "大乘后期",
+      "渡劫初期",
+      "渡劫中期",
+      "渡劫后期",
+      "半步真仙",
+      "真仙",
     ];
 
     // 灵根资质系统
@@ -282,7 +97,7 @@ export class Cultivation extends plugin {
         expRate: 0.5,
         alchemy: 0.3,
         breakthrough: 0.4,
-        description: "修炼效率极低，突破困难",
+        tribulation: 0.4,
       },
       {
         id: 1,
@@ -290,7 +105,7 @@ export class Cultivation extends plugin {
         expRate: 0.7,
         alchemy: 0.5,
         breakthrough: 0.6,
-        description: "修炼效率较低，突破较难",
+        tribulation: 0.5,
       },
       {
         id: 2,
@@ -298,7 +113,7 @@ export class Cultivation extends plugin {
         expRate: 0.9,
         alchemy: 0.7,
         breakthrough: 0.8,
-        description: "普通修炼资质",
+        tribulation: 0.6,
       },
       {
         id: 3,
@@ -306,7 +121,7 @@ export class Cultivation extends plugin {
         expRate: 1.0,
         alchemy: 0.9,
         breakthrough: 1.0,
-        description: "良好修炼资质",
+        tribulation: 0.7,
       },
       {
         id: 4,
@@ -314,7 +129,7 @@ export class Cultivation extends plugin {
         expRate: 1.2,
         alchemy: 1.1,
         breakthrough: 1.2,
-        description: "优秀修炼资质",
+        tribulation: 0.8,
       },
       {
         id: 5,
@@ -322,7 +137,7 @@ export class Cultivation extends plugin {
         expRate: 1.5,
         alchemy: 1.3,
         breakthrough: 1.4,
-        description: "罕见修炼资质",
+        tribulation: 0.9,
       },
       {
         id: 6,
@@ -330,7 +145,7 @@ export class Cultivation extends plugin {
         expRate: 1.8,
         alchemy: 1.5,
         breakthrough: 1.6,
-        description: "千年难遇的修炼奇才",
+        tribulation: 1.0,
       },
       {
         id: 7,
@@ -338,7 +153,7 @@ export class Cultivation extends plugin {
         expRate: 2.0,
         alchemy: 1.8,
         breakthrough: 1.8,
-        description: "万年难遇的绝世资质",
+        tribulation: 1.2,
       },
       {
         id: 8,
@@ -346,7 +161,7 @@ export class Cultivation extends plugin {
         expRate: 2.5,
         alchemy: 2.0,
         breakthrough: 2.0,
-        description: "传说中的仙人之资",
+        tribulation: 1.5,
       },
       {
         id: 9,
@@ -354,59 +169,101 @@ export class Cultivation extends plugin {
         expRate: 3.0,
         alchemy: 2.5,
         breakthrough: 2.5,
-        description: "开天辟地级的无上资质",
+        tribulation: 2.0,
       },
     ];
 
-    // 天劫系统
-    this.tribulationTypes = [
+    // 丹药系统
+    this.pills = [
       {
         id: 1,
-        name: "三九天劫",
-        damage: 30,
-        description: "三重雷劫，每重九道天雷，共计二十七道",
-        levels: [4, 7, 10, 13, 16, 19, 22, 25, 28, 31],
-        successBonus: "灵力纯度提升10%",
+        name: "聚气丹",
+        effect: "exp:100",
+        cost: 50,
+        desc: "增加100点修为",
+        quality: 1,
+        type: "cultivation",
       },
       {
         id: 2,
-        name: "六九天劫",
-        damage: 50,
-        description: "六重雷劫，每重九道天雷，共计五十四道",
-        levels: [6, 9, 12, 15, 18, 21, 24, 27, 30, 33],
-        successBonus: "灵力纯度提升20%，神通威力增加",
+        name: "筑基丹",
+        effect: "breakthrough:15",
+        cost: 300,
+        desc: "增加突破成功率15%",
+        quality: 2,
+        type: "breakthrough",
       },
       {
         id: 3,
-        name: "九九天劫",
-        damage: 70,
-        description: "九重雷劫，每重九道天雷，共计八十一道",
-        levels: [9, 12, 15, 18, 21, 24, 27, 30, 33, 35],
-        successBonus: "灵力纯度提升30%，获得天劫淬体",
+        name: "凝金丹",
+        effect: "exp:2000",
+        cost: 1500,
+        desc: "增加2000点修为",
+        quality: 3,
+        type: "cultivation",
       },
       {
         id: 4,
-        name: "心魔劫",
-        damage: 40,
-        description: "引动心魔，道心不稳者极易陨落",
-        levels: [5, 8, 11, 14, 17, 20, 23, 26, 29, 32],
-        successBonus: "道心稳固，神识增强20%",
+        name: "元婴丹",
+        effect: "exp:10000",
+        cost: 8000,
+        desc: "增加10000点修为",
+        quality: 4,
+        type: "cultivation",
       },
       {
         id: 5,
-        name: "业火劫",
-        damage: 60,
-        description: "红莲业火焚身，净化因果业力",
-        levels: [7, 10, 13, 16, 19, 22, 25, 28, 31, 34],
-        successBonus: "业力消除，获得业火红莲护体",
+        name: "渡劫丹",
+        effect: "tribulation:20",
+        cost: 50000,
+        desc: "增加渡劫成功率20%",
+        quality: 5,
+        type: "tribulation",
       },
       {
         id: 6,
-        name: "混沌劫",
-        damage: 90,
-        description: "混沌神雷，毁天灭地",
-        levels: [10, 14, 18, 22, 26, 30, 34, 35],
-        successBonus: "获得混沌之力，神通威力倍增",
+        name: "九转还魂丹",
+        effect: "revive",
+        cost: 100000,
+        desc: "渡劫失败保命",
+        quality: 6,
+        type: "special",
+      },
+      {
+        id: 7,
+        name: "九转金丹",
+        effect: "exp:500000",
+        cost: 300000,
+        desc: "大幅提升修为",
+        quality: 7,
+        type: "cultivation",
+      },
+      {
+        id: 8,
+        name: "太虚神丹",
+        effect: "spirit_root",
+        cost: 500000,
+        desc: "永久提升灵根资质",
+        quality: 8,
+        type: "special",
+      },
+      {
+        id: 9,
+        name: "生生造化丹",
+        effect: "life:50",
+        cost: 2000,
+        desc: "恢复50点生命",
+        quality: 3,
+        type: "recovery",
+      },
+      {
+        id: 10,
+        name: "悟道丹",
+        effect: "comprehension:0.5",
+        cost: 10000,
+        desc: "提升悟性0.5",
+        quality: 4,
+        type: "special",
       },
     ];
 
@@ -417,80 +274,80 @@ export class Cultivation extends plugin {
         name: "《基础吐纳诀》",
         effect: "expRate:1.1",
         level: 1,
-        description: "修仙界最基础的修炼功法",
-        requirements: "无",
+        cost: 0,
+        desc: "基础修炼功法",
       },
       {
         id: 2,
         name: "《五行道法》",
         effect: "breakthrough:1.15",
         level: 2,
-        description: "掌握五行之力，提升突破成功率",
-        requirements: "筑基期",
+        cost: 500,
+        desc: "提升突破成功率",
       },
       {
         id: 3,
         name: "《九天玄功》",
         effect: "expRate:1.3, alchemy:1.2",
         level: 3,
-        description: "九天玄女所创，大幅提升修炼效率",
-        requirements: "金丹期",
+        cost: 2000,
+        desc: "提升修炼和炼丹效率",
       },
       {
         id: 4,
         name: "《太虚剑意》",
         effect: "tribulation:1.2",
         level: 4,
-        description: "剑道极致，增强渡劫能力",
-        requirements: "元婴期",
+        cost: 5000,
+        desc: "增强渡劫能力",
       },
       {
         id: 5,
         name: "《大衍神诀》",
         effect: "expRate:1.5, luck:10",
         level: 5,
-        description: "推演天机，提升气运和修炼效率",
-        requirements: "化神期",
+        cost: 10000,
+        desc: "提升修炼效率和气运",
       },
       {
         id: 6,
         name: "《混沌经》",
         effect: "expRate:2.0, breakthrough:1.3",
         level: 6,
-        description: "混沌初开时诞生的无上功法",
-        requirements: "炼虚期",
+        cost: 50000,
+        desc: "顶级修炼功法",
       },
       {
         id: 7,
         name: "《星辰变》",
         effect: "all:1.25",
         level: 7,
-        description: "引动星辰之力，全面提升属性",
-        requirements: "合体期",
+        cost: 100000,
+        desc: "全面提升属性",
       },
       {
         id: 8,
         name: "《一气化三清》",
         effect: "expRate:2.5, tribulation:1.5",
         level: 8,
-        description: "道门至高秘法，可分身修炼",
-        requirements: "大乘期",
+        cost: 500000,
+        desc: "无上仙法",
       },
       {
         id: 9,
-        name: "《八九玄功》",
-        effect: "combat:1.5, defense:1.5",
+        name: "《不死神凰诀》",
+        effect: "life:50, revive:1",
         level: 9,
-        description: "肉身成圣的无上法门",
-        requirements: "渡劫期",
+        cost: 300000,
+        desc: "增加生命和复活机会",
       },
       {
         id: 10,
-        name: "《混元道经》",
-        effect: "all:1.8",
+        name: "《虚空经》",
+        effect: "dungeon:1.3, adventure:1.5",
         level: 10,
-        description: "直指混元大道的终极功法",
-        requirements: "天仙",
+        cost: 200000,
+        desc: "增强秘境和奇遇收益",
       },
     ];
 
@@ -502,10 +359,8 @@ export class Cultivation extends plugin {
         effect: "突破成功率+5%",
         level: 1,
         cost: 500,
-        enhanceCost: 100,
-        maxLevel: 10,
-        description: "修仙者常用的飞剑",
-        type: "武器",
+        type: "weapon",
+        attr: "breakthrough:5",
       },
       {
         id: 2,
@@ -513,10 +368,8 @@ export class Cultivation extends plugin {
         effect: "天劫伤害-10%",
         level: 2,
         cost: 1500,
-        enhanceCost: 300,
-        maxLevel: 10,
-        description: "防御型法宝，可抵御天劫",
-        type: "防御",
+        type: "armor",
+        attr: "tribulation:10",
       },
       {
         id: 3,
@@ -524,10 +377,8 @@ export class Cultivation extends plugin {
         effect: "炼丹成功率+15%",
         level: 3,
         cost: 5000,
-        enhanceCost: 1000,
-        maxLevel: 10,
-        description: "炼丹神器，提升丹药品质",
-        type: "辅助",
+        type: "tool",
+        attr: "alchemy:15",
       },
       {
         id: 4,
@@ -535,10 +386,8 @@ export class Cultivation extends plugin {
         effect: "奇遇触发率+20%",
         level: 4,
         cost: 20000,
-        enhanceCost: 4000,
-        maxLevel: 10,
-        description: "可窥探天机的神器",
-        type: "辅助",
+        type: "mystic",
+        attr: "adventure:20",
       },
       {
         id: 5,
@@ -546,10 +395,8 @@ export class Cultivation extends plugin {
         effect: "全属性+15%",
         level: 5,
         cost: 100000,
-        enhanceCost: 20000,
-        maxLevel: 10,
-        description: "上古神器，威能无穷",
-        type: "神器",
+        type: "divine",
+        attr: "all:15",
       },
       {
         id: 6,
@@ -557,265 +404,232 @@ export class Cultivation extends plugin {
         effect: "攻击类法宝效果翻倍",
         level: 6,
         cost: 500000,
-        enhanceCost: 100000,
-        maxLevel: 10,
-        description: "洪荒杀阵，神魔辟易",
-        type: "阵法",
+        type: "weapon",
+        attr: "weapon_effect:100",
       },
       {
         id: 7,
-        name: "混沌钟",
-        effect: "全属性+30%，渡劫成功率+20%",
+        name: "炼妖壶",
+        effect: "秘境收益+30%",
+        level: 5,
+        cost: 80000,
+        type: "tool",
+        attr: "dungeon:30",
+      },
+      {
+        id: 8,
+        name: "伏羲琴",
+        effect: "双修效果+50%",
+        level: 4,
+        cost: 30000,
+        type: "mystic",
+        attr: "dual:50",
+      },
+      {
+        id: 9,
+        name: "盘古斧",
+        effect: "突破成功率+20%",
         level: 7,
-        cost: 2000000,
-        enhanceCost: 500000,
-        maxLevel: 10,
-        description: "混沌至宝，镇压诸天",
-        type: "神器",
-      },
-    ];
-
-    // 丹药系统
-    this.pills = [
-      {
-        id: 1,
-        name: "聚气丹",
-        effect: 100,
-        cost: 50,
-        description: "增加100点修为",
-        quality: 1,
-        type: "修为",
-      },
-      {
-        id: 2,
-        name: "筑基丹",
-        effect: 500,
-        cost: 300,
-        description: "突破筑基必备",
-        quality: 2,
-        type: "突破",
-      },
-      {
-        id: 3,
-        name: "凝金丹",
-        effect: 2000,
-        cost: 1500,
-        description: "凝结金丹辅助",
-        quality: 3,
-        type: "突破",
-      },
-      {
-        id: 4,
-        name: "元婴丹",
-        effect: 10000,
-        cost: 8000,
-        description: "孕育元婴所需",
-        quality: 4,
-        type: "突破",
-      },
-      {
-        id: 5,
-        name: "渡劫丹",
-        effect: 50000,
-        cost: 50000,
-        description: "抵御天劫损伤",
-        quality: 5,
-        type: "渡劫",
-      },
-      {
-        id: 6,
-        name: "九转还魂丹",
-        effect: 0,
-        cost: 100000,
-        description: "渡劫失败保命",
-        quality: 6,
-        type: "保命",
-      },
-      {
-        id: 7,
-        name: "九转金丹",
-        effect: 500000,
         cost: 300000,
-        description: "大幅提升修为",
-        quality: 7,
-        type: "修为",
-      },
-      {
-        id: 8,
-        name: "太虚神丹",
-        effect: 0,
-        cost: 500000,
-        description: "永久提升灵根资质",
-        quality: 8,
-        type: "资质",
-      },
-      {
-        id: 9,
-        name: "悟道丹",
-        effect: 0,
-        cost: 200000,
-        description: "提升悟性",
-        quality: 6,
-        type: "悟性",
+        type: "weapon",
+        attr: "breakthrough:20",
       },
       {
         id: 10,
-        name: "长生丹",
-        effect: 0,
-        cost: 1000000,
-        description: "增加寿元",
-        quality: 9,
-        type: "寿元",
+        name: "女娲石",
+        effect: "生命上限+30%",
+        level: 6,
+        cost: 150000,
+        type: "divine",
+        attr: "life:30",
       },
     ];
 
-    // 背包物品系统
-    this.items = [
+    // 秘境系统
+    this.dungeons = [
       {
         id: 1,
-        name: "下品灵石",
-        type: "货币",
-        value: 1,
-        description: "修仙界基础货币",
+        name: "迷雾森林",
+        minRealm: 0,
+        rewards: "灵石+100~300，修为+50~150",
+        difficulty: "简单",
       },
       {
         id: 2,
-        name: "中品灵石",
-        type: "货币",
-        value: 100,
-        description: "相当于100下品灵石",
+        name: "熔岩洞穴",
+        minRealm: 4,
+        rewards: "灵石+300~800，修为+200~500，低阶丹药",
+        difficulty: "普通",
       },
       {
         id: 3,
-        name: "上品灵石",
-        type: "货币",
-        value: 10000,
-        description: "相当于100中品灵石",
+        name: "幽冥地府",
+        minRealm: 8,
+        rewards: "灵石+1000~3000，修为+800~2000，中阶丹药",
+        difficulty: "困难",
       },
       {
         id: 4,
-        name: "极品灵石",
-        type: "货币",
-        value: 1000000,
-        description: "稀有灵石，蕴含精纯灵气",
+        name: "九天仙宫",
+        minRealm: 12,
+        rewards: "灵石+5000~15000，修为+3000~8000，高阶丹药",
+        difficulty: "极难",
       },
       {
         id: 5,
-        name: "灵草",
-        type: "材料",
-        value: 50,
-        description: "炼丹基础材料",
+        name: "混沌虚空",
+        minRealm: 20,
+        rewards: "极品法宝，仙丹，稀有功法",
+        difficulty: "地狱",
+      },
+    ];
+
+    // 天劫系统
+    this.tribulations = [
+      {
+        id: 1,
+        name: "三九天劫",
+        damage: 30,
+        desc: "三重雷劫，每重九道天雷",
+        level: 1,
+        successRate: 60,
+      },
+      {
+        id: 2,
+        name: "六九天劫",
+        damage: 50,
+        desc: "六重雷劫，每重九道天雷",
+        level: 2,
+        successRate: 50,
+      },
+      {
+        id: 3,
+        name: "九九天劫",
+        damage: 70,
+        desc: "九重雷劫，每重九道天雷",
+        level: 3,
+        successRate: 40,
+      },
+      {
+        id: 4,
+        name: "心魔劫",
+        damage: 40,
+        desc: "引动心魔，道心不稳者极易陨落",
+        level: 4,
+        successRate: 45,
+      },
+      {
+        id: 5,
+        name: "业火劫",
+        damage: 60,
+        desc: "红莲业火焚身，净化因果业力",
+        level: 5,
+        successRate: 35,
       },
       {
         id: 6,
-        name: "朱果",
-        type: "材料",
-        value: 500,
-        description: "炼制高级丹药的材料",
+        name: "混沌劫",
+        damage: 90,
+        desc: "混沌神雷，毁天灭地",
+        level: 6,
+        successRate: 25,
+      },
+    ];
+
+    // 商店物品
+    this.shopItems = [
+      {
+        id: 1,
+        name: "下品灵石袋",
+        price: 100,
+        effect: "stone:500",
+        type: "resource",
+        limit: 5,
+      },
+      {
+        id: 2,
+        name: "中品灵石袋",
+        price: 500,
+        effect: "stone:2500",
+        type: "resource",
+        limit: 3,
+      },
+      {
+        id: 3,
+        name: "上品灵石袋",
+        price: 2000,
+        effect: "stone:10000",
+        type: "resource",
+        limit: 1,
+      },
+      {
+        id: 4,
+        name: "聚气丹",
+        price: 80,
+        effect: "item:1",
+        type: "pill",
+        limit: 10,
+      },
+      {
+        id: 5,
+        name: "筑基丹",
+        price: 400,
+        effect: "item:2",
+        type: "pill",
+        limit: 5,
+      },
+      {
+        id: 6,
+        name: "炼器材料包",
+        price: 300,
+        effect: "refine:1",
+        type: "material",
+        limit: 3,
       },
       {
         id: 7,
-        name: "千年灵芝",
-        type: "材料",
-        value: 5000,
-        description: "稀有灵药，可炼制珍品丹药",
+        name: "气运符",
+        price: 1500,
+        effect: "luck:20",
+        type: "buff",
+        limit: 2,
       },
       {
         id: 8,
-        name: "玄铁",
-        type: "材料",
-        value: 200,
-        description: "炼制法宝的基础材料",
+        name: "悟道茶",
+        price: 2500,
+        effect: "comprehension:1",
+        type: "buff",
+        limit: 1,
       },
       {
         id: 9,
-        name: "星辰砂",
-        type: "材料",
-        value: 5000,
-        description: "炼制高级法宝的材料",
+        name: "宗门建设令",
+        price: 5000,
+        effect: "sect_exp:1000",
+        type: "sect",
+        limit: 1,
       },
       {
         id: 10,
-        name: "秘境地图",
-        type: "特殊",
-        value: 10000,
-        description: "记载秘境位置的地图",
-      },
-      {
-        id: 11,
-        name: "宗门令",
-        type: "特殊",
-        value: 0,
-        description: "宗门身份象征",
-      },
-      {
-        id: 12,
-        name: "渡劫符",
-        type: "消耗品",
-        value: 50000,
-        description: "减少天劫伤害20%",
+        name: "随机功法卷轴",
+        price: 10000,
+        effect: "random_art",
+        type: "special",
+        limit: 1,
       },
     ];
 
-    // 商店系统
-    this.shopItems = [
-      { id: 1, itemId: 5, price: 60, dailyLimit: 100 }, // 灵草
-      { id: 2, itemId: 8, price: 250, dailyLimit: 50 }, // 玄铁
-      { id: 3, itemId: 1, price: 1, dailyLimit: 10000 }, // 下品灵石
-      { id: 4, itemId: 2, price: 100, dailyLimit: 100 }, // 中品灵石
-      { id: 5, itemId: 12, price: 50000, dailyLimit: 5 }, // 渡劫符
-      { id: 6, itemId: 9, price: 6000, dailyLimit: 10 }, // 星辰砂
-      { id: 7, itemId: 6, price: 600, dailyLimit: 20 }, // 朱果
-    ];
-
-    // 宗门系统
-    this.sectRanks = [
-      { id: 1, name: "外门弟子", salary: 100, permissions: [] },
-      { id: 2, name: "内门弟子", salary: 200, permissions: ["接任务"] },
-      {
-        id: 3,
-        name: "核心弟子",
-        salary: 300,
-        permissions: ["接任务", "使用修炼室"],
-      },
-      {
-        id: 4,
-        name: "执事",
-        salary: 400,
-        permissions: ["接任务", "使用修炼室", "招募弟子"],
-      },
-      {
-        id: 5,
-        name: "长老",
-        salary: 500,
-        permissions: ["接任务", "使用修炼室", "招募弟子", "发布任务"],
-      },
-      {
-        id: 6,
-        name: "护法",
-        salary: 700,
-        permissions: [
-          "接任务",
-          "使用修炼室",
-          "招募弟子",
-          "发布任务",
-          "惩罚弟子",
-        ],
-      },
-      {
-        id: 7,
-        name: "副宗主",
-        salary: 1000,
-        permissions: [
-          "接任务",
-          "使用修炼室",
-          "招募弟子",
-          "发布任务",
-          "惩罚弟子",
-          "升级建筑",
-        ],
-      },
-      { id: 8, name: "宗主", salary: 1500, permissions: ["所有权限"] },
+    // 宗门职位体系
+    this.sectTitles = [
+      { id: 1, name: "外门弟子", salary: 100, authority: 0 },
+      { id: 2, name: "内门弟子", salary: 200, authority: 1 },
+      { id: 3, name: "核心弟子", salary: 300, authority: 2 },
+      { id: 4, name: "执事", salary: 400, authority: 3 },
+      { id: 5, name: "长老", salary: 600, authority: 4 },
+      { id: 6, name: "护法", salary: 800, authority: 5 },
+      { id: 7, name: "副宗主", salary: 1200, authority: 6 },
+      { id: 8, name: "宗主", salary: 2000, authority: 10 },
     ];
 
     // 宗门任务
@@ -823,78 +637,37 @@ export class Cultivation extends plugin {
       {
         id: 1,
         name: "采集灵草",
-        reward: { stone: 100, contribution: 10 },
-        description: "采集10株灵草",
+        requirement: "collect_herb",
+        reward: "贡献+50, 灵石+200",
+        difficulty: "简单",
       },
       {
         id: 2,
-        name: "猎杀妖兽",
-        reward: { stone: 200, contribution: 20 },
-        description: "猎杀5只炼气期妖兽",
+        name: "剿灭妖兽",
+        requirement: "kill_monster",
+        reward: "贡献+100, 灵石+500",
+        difficulty: "普通",
       },
       {
         id: 3,
-        name: "守卫宗门",
-        reward: { stone: 500, contribution: 50 },
-        description: "参与宗门守卫任务",
+        name: "守卫矿脉",
+        requirement: "defend_mine",
+        reward: "贡献+200, 灵石+1000",
+        difficulty: "困难",
       },
       {
         id: 4,
-        name: "探索秘境",
-        reward: { stone: 800, contribution: 80 },
-        description: "探索未知秘境",
+        name: "探索遗迹",
+        requirement: "explore_ruin",
+        reward: "贡献+500, 灵石+3000, 随机丹药",
+        difficulty: "极难",
       },
       {
         id: 5,
-        name: "炼制丹药",
-        reward: { stone: 300, contribution: 30 },
-        description: "为宗门炼制10枚聚气丹",
-      },
-      {
-        id: 6,
-        name: "教导弟子",
-        reward: { stone: 400, contribution: 40 },
-        description: "指导新入门弟子修炼",
-      },
-    ];
-
-    // 宗门商店
-    this.sectShop = [
-      {
-        id: 1,
-        itemId: 3,
-        price: 100,
-        contribution: 50,
-        description: "100下品灵石",
-      },
-      { id: 2, itemId: 5, price: 0, contribution: 10, description: "灵草×10" },
-      {
-        id: 3,
-        itemId: 2,
-        price: 0,
-        contribution: 100,
-        description: "中品灵石×1",
-      },
-      {
-        id: 4,
-        itemId: 12,
-        price: 0,
-        contribution: 500,
-        description: "渡劫符×1",
-      },
-      {
-        id: 5,
-        itemId: 7,
-        price: 0,
-        contribution: 1000,
-        description: "千年灵芝×1",
-      },
-      {
-        id: 6,
-        itemId: 4,
-        price: 0,
-        contribution: 5000,
-        description: "上品灵石×1",
+        name: "炼制法宝",
+        requirement: "forge_artifact",
+        reward: "贡献+1000, 灵石+8000, 宗门经验+500",
+        difficulty: "地狱",
       },
     ];
 
@@ -902,16 +675,14 @@ export class Cultivation extends plugin {
     this.dataPath = path.join(process.cwd(), "data/cultivation_data");
     this.userDataFile = path.join(this.dataPath, "user_data.json");
     this.sectDataFile = path.join(this.dataPath, "sect_data.json");
-    this.shopDataFile = path.join(this.dataPath, "shop_data.json");
 
     // 初始化数据存储
     this.initStorage();
     this.loadData();
 
-    // 每日任务
+    // 定时任务
     schedule.scheduleJob("0 0 0 * * *", () => this.dailyReset());
-    // 每周宗门福利
-    schedule.scheduleJob("0 0 0 * * 1", () => this.weeklySectBenefits());
+    schedule.scheduleJob("0 0 0 * * 1", () => this.weeklyReset());
   }
 
   /** 初始化存储 */
@@ -927,16 +698,6 @@ export class Cultivation extends plugin {
     if (!fs.existsSync(this.sectDataFile)) {
       fs.writeFileSync(this.sectDataFile, "{}");
     }
-
-    if (!fs.existsSync(this.shopDataFile)) {
-      fs.writeFileSync(
-        this.shopDataFile,
-        JSON.stringify({
-          lastReset: Date.now(),
-          dailySold: {},
-        })
-      );
-    }
   }
 
   /** 加载数据 */
@@ -944,30 +705,10 @@ export class Cultivation extends plugin {
     try {
       this.userData = JSON.parse(fs.readFileSync(this.userDataFile, "utf8"));
       this.sects = JSON.parse(fs.readFileSync(this.sectDataFile, "utf8"));
-      this.shopData = JSON.parse(fs.readFileSync(this.shopDataFile, "utf8"));
-
-      // 检查商店每日重置
-      const now = Date.now();
-      const lastReset = new Date(this.shopData.lastReset);
-      const today = new Date(now);
-
-      if (
-        lastReset.getDate() !== today.getDate() ||
-        lastReset.getMonth() !== today.getMonth() ||
-        lastReset.getFullYear() !== today.getFullYear()
-      ) {
-        this.shopData.dailySold = {};
-        this.shopData.lastReset = now;
-        this.saveShopData();
-      }
     } catch (err) {
       console.error("修仙数据加载失败:", err);
       this.userData = {};
       this.sects = {};
-      this.shopData = {
-        lastReset: Date.now(),
-        dailySold: {},
-      };
     }
   }
 
@@ -977,68 +718,41 @@ export class Cultivation extends plugin {
     fs.writeFileSync(this.sectDataFile, JSON.stringify(this.sects, null, 2));
   }
 
-  /** 保存商店数据 */
-  saveShopData() {
-    fs.writeFileSync(this.shopDataFile, JSON.stringify(this.shopData, null, 2));
-  }
-
   /** 获取用户修仙数据 */
   getUserData(userId) {
     if (!this.userData[userId]) {
       this.userData[userId] = {
-        // 基础属性
-        realm: 0,
-        exp: 0,
-        spiritRoot: 0,
-        life: 100,
-        maxLife: 100,
-        stone: 100,
-        luck: 50,
-        comprehension: 1,
-        daoHeart: 1,
-        combatPower: 5,
-
-        // 时间记录
-        lastCultivate: 0,
-        lastSeclusion: 0,
-        lastDungeon: 0,
-        lastAdventure: 0,
-        lastSign: 0,
-        lastSalary: 0,
-        lastMission: 0,
-
-        // 统计
-        signStreak: 0,
-        tribulationCount: 0,
-        successCount: 0,
-        missionsCompleted: 0,
-
-        // 背包系统
-        inventory: {
-          1: 100, // 下品灵石
-          5: 10, // 灵草
-        },
-
-        // 功法系统
-        arts: [1],
-        artLevels: { 1: 1 },
-
-        // 法宝系统
-        artifacts: [],
-        equippedArtifact: null,
-        artifactLevels: {},
-
-        // 丹药系统
-        pills: {},
-
-        // 宗门系统
-        sect: null,
-        sectRank: 1,
-        contribution: 0,
-        sectJoinDate: Date.now(),
-
-        // 渡劫记录
-        tribulationRecords: [],
+        realm: 0, // 当前境界
+        exp: 0, // 当前修为
+        maxExp: 100, // 当前境界最大修为
+        spiritRoot: 0, // 灵根资质
+        pills: {}, // 丹药库存 {id: count}
+        arts: [1], // 已领悟功法ID
+        artifacts: [], // 拥有的法宝ID
+        equippedArtifact: null, // 装备的法宝ID
+        lastCultivate: 0, // 上次修炼时间
+        lastSeclusion: 0, // 上次闭关时间
+        lastDungeon: 0, // 上次挑战秘境时间
+        life: 100, // 生命值
+        maxLife: 100, // 最大生命值
+        tribulationCount: 0, // 渡劫次数
+        successCount: 0, // 成功次数
+        stone: 100, // 灵石
+        luck: 50, // 气运值
+        lastAdventure: 0, // 上次奇遇时间
+        lastSign: 0, // 上次签到时间
+        signStreak: 0, // 连续签到次数
+        sect: null, // 所属宗门ID
+        title: 1, // 宗门职位ID
+        contribution: 0, // 宗门贡献
+        comprehension: 1, // 悟性
+        daoHeart: 1, // 道心
+        combatPower: 5, // 战斗力
+        lastSalary: 0, // 上次领取俸禄时间
+        inventory: {}, // 背包物品 {id: count}
+        currentMission: null, // 当前宗门任务
+        lastRefine: 0, // 上次炼器时间
+        rebirthCount: 0, // 转世次数
       };
     }
     return this.userData[userId];
@@ -1046,34 +760,35 @@ export class Cultivation extends plugin {
 
   /** 每日重置 */
   dailyReset() {
-    const now = Date.now();
     Object.keys(this.userData).forEach((userId) => {
       const user = this.userData[userId];
-
-      // 每日恢复
       user.luck = Math.min(100, user.luck + 10);
-      user.life = Math.min(user.maxLife, user.life + 20);
+      user.life = Math.min(user.maxLife, user.life + 30);
 
       // 宗门每日福利
       if (user.sect && this.sects[user.sect]) {
         const sect = this.sects[user.sect];
-        user.stone += sect.level * 50;
-        user.contribution += 10;
+        const title = this.sectTitles.find((t) => t.id === user.title);
+        if (title) {
+          user.stone += title.salary;
+        }
+      }
+
+      // 重置每日购买限制
+      if (user.shopLimits) {
+        Object.keys(user.shopLimits).forEach((itemId) => {
+          user.shopLimits[itemId] = 0;
+        });
       }
     });
-
-    // 重置商店销售记录
-    this.shopData.dailySold = {};
-    this.shopData.lastReset = now;
-    this.saveShopData();
     this.saveData();
   }
 
-  /** 每周宗门福利 */
-  weeklySectBenefits() {
+  /** 每周重置 */
+  weeklyReset() {
     Object.keys(this.sects).forEach((sectId) => {
       const sect = this.sects[sectId];
-      sect.funds += sect.members.length * 100 * sect.level;
+      sect.funds += sect.members.length * 500;
     });
     this.saveData();
   }
@@ -1084,659 +799,56 @@ export class Cultivation extends plugin {
       "🌌 终极修仙渡劫系统",
       "================================",
       "🏮 基础指令：",
-      "#我的境界 - 查看当前修仙状态",
-      "#修炼 - 日常修炼",
-      "#突破 - 突破境界",
-      "#渡劫 - 渡劫飞升",
-      "#每日签到 - 每日领取资源",
-      "#领取俸禄 - 领取宗门俸禄",
+      "#每日签到 - 每日领取资源 (冷却: 无)",
+      "#修炼 - 日常修炼增加修为 (冷却: 5分钟)",
+      "#突破 - 尝试突破到下一境界 (冷却: 无)",
+      "#渡劫 - 境界圆满后渡劫飞升 (冷却: 无)",
+      "#我的境界 - 查看当前修仙状态 (冷却: 无)",
+      "#灵根测试 - 检测自身灵根资质 (冷却: 无)",
       "",
-      "📦 背包系统：",
-      "#我的背包 - 查看背包物品",
-      "#使用物品 [ID] - 使用物品",
-      "#修仙商店 - 查看修仙商店",
-      "#购买物品 [ID] [数量] - 购买物品",
-      "#出售物品 [ID] [数量] - 出售物品",
+      "💰 资源获取：",
+      "#领取俸禄 - 领取宗门俸禄 (需加入宗门, 冷却: 无)",
+      "#奇遇 - 探索修仙界获取资源 (冷却: 2小时)",
+      "#挑战秘境 [层级] - 挑战秘境获取资源 (冷却: 1小时)",
+      "#修仙商店 - 查看修仙商店 (冷却: 无)",
+      "#购买 [物品ID] [数量] - 购买物品 (冷却: 无)",
       "",
-      "📚 查看系统：",
-      "#查看天劫 - 查看天劫体系",
-      "#查看功法 - 查看功法系统",
-      "#查看宗门体系 - 查看宗门系统",
-      "#查看境界体系 - 查看境界系统",
-      "#查看法宝系统 - 查看法宝系统",
-      "#查看丹药系统 - 查看丹药系统",
-      "#查看灵石经济 - 查看经济系统",
+      "📦 物品系统：",
+      "#我的背包 - 查看背包物品 (冷却: 无)",
+      "#使用物品 [物品ID] - 使用物品 (冷却: 无)",
+      "#丹药图鉴 - 查看所有丹药 (冷却: 无)",
+      "#法宝图鉴 - 查看所有法宝 (冷却: 无)",
       "",
-      "⚔️ 战斗系统：",
-      "#挑战秘境 [层级] - 挑战秘境",
-      "#强化法宝 [ID] - 强化法宝",
-      "#渡劫准备 - 准备渡劫",
-      "#渡劫记录 - 查看渡劫记录",
+      "🔮 进阶指令：",
+      "#闭关 [时间] - 长时间闭关修炼 (冷却: 6小时)",
+      "#炼丹 [丹药ID] - 炼制丹药 (冷却: 无)",
+      "#服用丹药 [丹药ID] - 使用丹药 (冷却: 无)",
+      "#领悟功法 - 尝试领悟新功法 (冷却: 无)",
+      "#渡劫准备 - 查看渡劫准备情况 (冷却: 无)",
+      "#天劫信息 - 查看天劫系统 (冷却: 无)",
+      "#境界体系 - 查看所有境界 (冷却: 无)",
+      "#功法大全 - 查看所有功法 (冷却: 无)",
+      "",
+      "⚔️ 法宝系统：",
+      "#炼制法宝 [ID] - 炼制法宝 (冷却: 无)",
+      "#装备法宝 [ID] - 装备法宝 (冷却: 无)",
+      "#炼器 - 炼制随机法宝 (冷却: 12小时)",
       "",
       "👥 宗门系统：",
-      "#宗门信息 - 查看宗门信息",
-      "#宗门任务 - 接取宗门任务",
-      "#宗门商店 - 查看宗门商店",
-      "#兑换贡献 [ID] - 兑换贡献点",
-      "#传功 @对方 - 传功给道友",
-      "#加入宗门 [名称] - 加入宗门",
-      "#创建宗门 [名称] - 创建宗门",
+      "#宗门信息 - 查看宗门信息 (冷却: 无)",
+      "#加入宗门 [名称] - 加入宗门 (冷却: 无)",
+      "#创建宗门 [名称] - 创建新宗门 (冷却: 无)",
+      "#宗门列表 - 查看所有宗门 (冷却: 无)",
+      "#宗门排行 - 宗门实力排行榜 (冷却: 无)",
+      "#宗门任务 - 接取宗门任务 (冷却: 无)",
+      "#提交任务 - 提交当前任务 (冷却: 无)",
+      "#宗门管理 [命令] - 管理宗门 (宗主专用)",
       "================================",
-      "💎 灵石获取途径：签到、俸禄、秘境、奇遇、任务",
+      "💡 提示：输入 #修仙帮助 查看详细指令说明",
+      "💎 灵石获取途径：签到、俸禄、秘境、奇遇、任务、商店",
     ].join("\n");
     await this.reply(helpMsg);
   }
-
-  // ==================== 查看系统 ====================
-
-  /** 查看天劫系统 */
-  async viewTribulationSystem() {
-    let msg = ["⚡ 天劫系统", "================================"];
-
-    this.tribulationTypes.forEach((t) => {
-      msg.push(`【${t.name}】`);
-      msg.push(`伤害：${t.damage}% 生命值`);
-      msg.push(`描述：${t.description}`);
-      msg.push(
-        `适用境界：${t.levels.map((l) => this.realms[l].name).join("、")}`
-      );
-      msg.push(`渡劫成功奖励：${t.successBonus}`);
-      msg.push("--------------------------------");
-    });
-
-    msg.push("💡 提示：不同境界可能遭遇不同天劫，请做好充分准备");
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 查看功法系统 */
-  async viewArtSystem() {
-    let msg = ["📜 功法系统", "================================"];
-
-    this.arts.forEach((a) => {
-      msg.push(`【${a.name}】★${a.level}`);
-      msg.push(`效果：${a.effect}`);
-      msg.push(`描述：${a.description}`);
-      msg.push(`修炼要求：${a.requirements || "无"}`);
-      msg.push("--------------------------------");
-    });
-
-    msg.push("💡 提示：功法可大幅提升修炼效率和渡劫成功率");
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 查看宗门体系 */
-  async viewSectSystem() {
-    let msg = ["🏯 宗门体系", "================================"];
-
-    msg.push("【宗门等级】");
-    msg.push("1级：基础宗门，每日福利50灵石");
-    msg.push("2级：小型宗门，每日福利100灵石，解锁修炼室");
-    msg.push("3级：中型宗门，每日福利150灵石，解锁藏经阁");
-    msg.push("4级：大型宗门，每日福利200灵石，解锁炼丹房");
-    msg.push("5级：顶级宗门，每日福利300灵石，解锁所有设施");
-    msg.push("--------------------------------");
-
-    msg.push("【宗门职位】");
-    this.sectRanks.forEach((r) => {
-      msg.push(
-        `${r.name}：俸禄${r.salary}灵石/天，权限：${
-          r.permissions.join("、") || "无"
-        }`
-      );
-    });
-    msg.push("--------------------------------");
-
-    msg.push("【宗门建筑】");
-    msg.push("修炼室：提升修炼效率20%");
-    msg.push("藏经阁：解锁高级功法");
-    msg.push("炼丹房：提升炼丹成功率15%");
-    msg.push("炼器坊：提升法宝强化成功率10%");
-    msg.push("护山大阵：减少外敌入侵概率");
-
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 查看境界体系 */
-  async viewRealmSystem() {
-    let msg = ["🌠 境界体系", "================================"];
-
-    this.realms.forEach((r, i) => {
-      if (i % 6 === 0 && i !== 0) {
-        msg.push("--------------------------------");
-      }
-      msg.push(`【${r.name}】需修为：${r.maxExp.toLocaleString()}`);
-      msg.push(`描述：${r.description}`);
-    });
-
-    msg.push("================================");
-    msg.push("💡 提示：境界越高，实力越强，但突破难度也越大");
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 查看法宝系统 */
-  async viewArtifactSystem() {
-    let msg = ["🔮 法宝系统", "================================"];
-
-    this.artifacts.forEach((a) => {
-      msg.push(`【${a.name}】★${a.level}`);
-      msg.push(`类型：${a.type}`);
-      msg.push(`效果：${a.effect}`);
-      msg.push(`炼制成本：${a.cost}灵石`);
-      msg.push(`强化消耗：${a.enhanceCost}灵石/次`);
-      msg.push(`描述：${a.description}`);
-      msg.push("--------------------------------");
-    });
-
-    msg.push("💡 提示：法宝可大幅提升修炼和战斗效率");
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 查看丹药系统 */
-  async viewPillSystem() {
-    let msg = ["💊 丹药系统", "================================"];
-
-    msg.push("【丹药类型】");
-    msg.push("修为类：直接增加修为");
-    msg.push("突破类：提升突破成功率");
-    msg.push("渡劫类：增强渡劫能力");
-    msg.push("资质类：永久提升属性");
-    msg.push("保命类：防止渡劫失败陨落");
-    msg.push("--------------------------------");
-
-    msg.push("【丹药品质】");
-    msg.push("1-3星：普通丹药");
-    msg.push("4-6星：高级丹药");
-    msg.push("7-9星：极品丹药");
-    msg.push("--------------------------------");
-
-    msg.push("【代表丹药】");
-    this.pills.slice(0, 5).forEach((p) => {
-      msg.push(`● ${p.name}：${p.description}`);
-    });
-
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 查看灵石经济 */
-  async viewEconomySystem() {
-    let msg = ["💎 灵石经济系统", "================================"];
-
-    msg.push("【灵石体系】");
-    msg.push("1下品灵石 = 基础单位");
-    msg.push("1中品灵石 = 100下品灵石");
-    msg.push("1上品灵石 = 100中品灵石");
-    msg.push("1极品灵石 = 100上品灵石");
-    msg.push("--------------------------------");
-
-    msg.push("【获取途径】");
-    msg.push("1. 每日签到");
-    msg.push("2. 宗门俸禄");
-    msg.push("3. 秘境挑战");
-    msg.push("4. 奇遇探索");
-    msg.push("5. 宗门任务");
-    msg.push("6. 物品出售");
-    msg.push("7. 灵石兑换");
-    msg.push("--------------------------------");
-
-    msg.push("【消费途径】");
-    msg.push("1. 购买物品");
-    msg.push("2. 炼制法宝");
-    msg.push("3. 炼制丹药");
-    msg.push("4. 强化法宝");
-    msg.push("5. 宗门建设");
-    msg.push("6. 功法领悟");
-
-    await this.reply(msg.join("\n"));
-  }
-
-  // ==================== 背包系统 ====================
-
-  /** 查看背包 */
-  async viewInventory() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-
-    let msg = ["🎒 我的背包", "================================"];
-    let totalValue = 0;
-    let hasItems = false;
-
-    for (const itemId in user.inventory) {
-      const id = parseInt(itemId);
-      const quantity = user.inventory[itemId];
-      if (quantity > 0) {
-        const item = this.items.find((i) => i.id === id);
-        if (item) {
-          hasItems = true;
-          const value = item.value * quantity;
-          totalValue += value;
-          msg.push(`[${item.id}] ${item.name} ×${quantity}`);
-          msg.push(`  类型: ${item.type} | 价值: ${value}灵石`);
-          msg.push(`  描述: ${item.description}`);
-          msg.push("--------------------------------");
-        }
-      }
-    }
-
-    if (!hasItems) {
-      msg.push("📭 背包空空如也");
-    } else {
-      msg.push(`💰 背包总价值: ${totalValue}灵石`);
-    }
-
-    msg.push("使用 #使用物品 [ID] 使用物品");
-    msg.push("使用 #出售物品 [ID] [数量] 出售物品");
-
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 使用物品 */
-  async useItem() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-    const itemId = parseInt(this.e.msg.match(/^#使用物品\s+(\d+)$/)[1]);
-
-    const item = this.items.find((i) => i.id === itemId);
-    if (!item) return this.reply("❌ 物品不存在");
-
-    if (!user.inventory[itemId] || user.inventory[itemId] <= 0) {
-      return this.reply(`❌ 没有 ${item.name}`);
-    }
-
-    user.inventory[itemId]--;
-
-    switch (itemId) {
-      case 12: // 渡劫符
-        if (!user.pills[12]) user.pills[12] = 0;
-        user.pills[12]++;
-        await this.reply(`🛡️ 使用渡劫符，下次渡劫伤害减少20%`);
-        break;
-      default:
-        await this.reply(`✅ 使用 ${item.name} ×1`);
-    }
-
-    this.saveData();
-  }
-
-  // ==================== 商店系统 ====================
-
-  /** 查看修仙商店 */
-  async viewShop() {
-    let msg = ["🏪 修仙商店", "================================"];
-
-    this.shopItems.forEach((si) => {
-      const item = this.items.find((i) => i.id === si.itemId);
-      const soldToday = this.shopData.dailySold[si.id] || 0;
-      const remaining = si.dailyLimit - soldToday;
-
-      if (item) {
-        msg.push(`[${si.id}] ${item.name} - ${item.description}`);
-        msg.push(
-          `  价格: ${si.price}灵石 | 今日剩余: ${remaining}/${si.dailyLimit}`
-        );
-        msg.push("--------------------------------");
-      }
-    });
-
-    msg.push("使用 #购买物品 [ID] [数量] 购买物品");
-    msg.push("使用 #出售物品 [ID] [数量] 出售物品");
-
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 购买物品 */
-  async buyItem() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-    const match = this.e.msg.match(/^#购买物品\s+(\d+)\s*(\d+)?$/);
-    const shopItemId = parseInt(match[1]);
-    const quantity = match[2] ? parseInt(match[2]) : 1;
-
-    if (quantity < 1) return this.reply("❌ 数量必须大于0");
-
-    const shopItem = this.shopItems.find((si) => si.id === shopItemId);
-    if (!shopItem) return this.reply("❌ 商品不存在");
-
-    const soldToday = this.shopData.dailySold[shopItemId] || 0;
-    if (soldToday + quantity > shopItem.dailyLimit) {
-      return this.reply(
-        `❌ 今日剩余数量不足，仅剩 ${shopItem.dailyLimit - soldToday} 件`
-      );
-    }
-
-    const totalCost = shopItem.price * quantity;
-    if (user.stone < totalCost) {
-      return this.reply(`❌ 灵石不足，需要 ${totalCost} 灵石`);
-    }
-
-    const item = this.items.find((i) => i.id === shopItem.itemId);
-    if (!item) return this.reply("❌ 物品数据异常");
-
-    // 更新数据
-    user.stone -= totalCost;
-    user.inventory[shopItem.itemId] =
-      (user.inventory[shopItem.itemId] || 0) + quantity;
-    this.shopData.dailySold[shopItemId] = soldToday + quantity;
-
-    this.saveData();
-    this.saveShopData();
-
-    await this.reply(
-      [
-        `🛒 购买成功！`,
-        `✅ 获得 ${item.name} ×${quantity}`,
-        `💎 花费 ${totalCost} 灵石`,
-        `📦 当前数量：${user.inventory[shopItem.itemId]}`,
-      ].join("\n")
-    );
-  }
-
-  /** 出售物品 */
-  async sellItem() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-    const match = this.e.msg.match(/^#出售物品\s+(\d+)\s*(\d+)?$/);
-    const itemId = parseInt(match[1]);
-    const quantity = match[2] ? parseInt(match[2]) : 1;
-
-    if (quantity < 1) return this.reply("❌ 数量必须大于0");
-
-    const item = this.items.find((i) => i.id === itemId);
-    if (!item) return this.reply("❌ 物品不存在");
-
-    if (!user.inventory[itemId] || user.inventory[itemId] < quantity) {
-      return this.reply(
-        `❌ ${item.name} 数量不足，仅有 ${user.inventory[itemId] || 0} 件`
-      );
-    }
-
-    // 计算出售价格（70%价值）
-    const totalValue = Math.floor(item.value * quantity * 0.7);
-
-    // 更新数据
-    user.inventory[itemId] -= quantity;
-    if (user.inventory[itemId] <= 0) delete user.inventory[itemId];
-    user.stone += totalValue;
-
-    this.saveData();
-
-    await this.reply(
-      [
-        `💰 出售成功！`,
-        `✅ 出售 ${item.name} ×${quantity}`,
-        `💎 获得 ${totalValue} 灵石`,
-        `📦 剩余数量：${user.inventory[itemId] || 0}`,
-      ].join("\n")
-    );
-  }
-
-  // ==================== 法宝系统 ====================
-
-  /** 强化法宝 */
-  async enhanceArtifact() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-    const artifactId = parseInt(this.e.msg.match(/^#强化法宝\s+(\d+)$/)[1]);
-
-    const artifact = this.artifacts.find((a) => a.id === artifactId);
-    if (!artifact) return this.reply("❌ 法宝不存在");
-
-    if (!user.artifacts.includes(artifactId)) {
-      return this.reply(`❌ 未拥有 ${artifact.name}`);
-    }
-
-    const currentLevel = user.artifactLevels[artifactId] || 1;
-    if (currentLevel >= artifact.maxLevel) {
-      return this.reply(`❌ ${artifact.name} 已达最大等级`);
-    }
-
-    const enhanceCost = artifact.enhanceCost * currentLevel;
-    if (user.stone < enhanceCost) {
-      return this.reply(`❌ 灵石不足，需要 ${enhanceCost} 灵石`);
-    }
-
-    // 强化成功率
-    const baseRate = 80 - currentLevel * 5;
-    const luckBonus = Math.floor(user.luck / 10);
-    const successRate = Math.max(30, baseRate + luckBonus);
-    const success = Math.random() * 100 < successRate;
-
-    user.stone -= enhanceCost;
-
-    if (success) {
-      user.artifactLevels[artifactId] = currentLevel + 1;
-      await this.reply(
-        [
-          `✨ 强化成功！`,
-          `🔮 ${artifact.name} 提升至 ${currentLevel + 1} 级`,
-          `💎 消耗 ${enhanceCost} 灵石`,
-          `📈 效果提升：${Math.floor(10 * currentLevel)}%`,
-        ].join("\n")
-      );
-    } else {
-      await this.reply(
-        [
-          `💥 强化失败！`,
-          `💎 损失 ${enhanceCost} 灵石`,
-          `😢 下次强化成功率增加5%`,
-        ].join("\n")
-      );
-    }
-
-    this.saveData();
-  }
-
-  // ==================== 宗门扩展系统 ====================
-
-  /** 宗门任务 */
-  async sectMission() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-
-    if (!user.sect) {
-      return this.reply("❌ 未加入宗门，无法接取任务");
-    }
-
-    const now = Date.now();
-    if (now - user.lastMission < 21600000) {
-      // 6小时CD
-      const remaining = Math.ceil(
-        (21600000 - (now - user.lastMission)) / 3600000
-      );
-      return this.reply(`⏳ 请 ${remaining} 小时后再接取新任务`);
-    }
-
-    const mission =
-      this.sectMissions[Math.floor(Math.random() * this.sectMissions.length)];
-
-    // 记录任务
-    user.currentMission = mission.id;
-    user.lastMission = now;
-    this.saveData();
-
-    await this.reply(
-      [
-        `📋 宗门任务接取成功！`,
-        `✅ 任务名称：${mission.name}`,
-        `📝 任务要求：${mission.description}`,
-        `🎁 任务奖励：${mission.reward.stone}灵石 + ${mission.reward.contribution}贡献`,
-        `⏳ 完成任务后自动领取奖励`,
-      ].join("\n")
-    );
-  }
-
-  /** 完成宗门任务 */
-  async completeMission(userId) {
-    const user = this.getUserData(userId);
-    if (!user.currentMission) return;
-
-    const mission = this.sectMissions.find((m) => m.id === user.currentMission);
-    if (!mission) return;
-
-    user.stone += mission.reward.stone;
-    user.contribution += mission.reward.contribution;
-    user.missionsCompleted = (user.missionsCompleted || 0) + 1;
-    delete user.currentMission;
-
-    // 宗门奖励
-    if (user.sect && this.sects[user.sect]) {
-      this.sects[user.sect].funds += mission.reward.stone * 0.2;
-    }
-
-    this.saveData();
-
-    await this.reply(
-      [
-        `🎉 宗门任务完成！`,
-        `✅ 任务名称：${mission.name}`,
-        `💎 获得灵石：${mission.reward.stone}`,
-        `🎖️ 获得贡献：${mission.reward.contribution}`,
-        `📊 累计完成任务：${user.missionsCompleted}次`,
-      ].join("\n")
-    );
-  }
-
-  /** 查看宗门商店 */
-  async sectShop() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-
-    if (!user.sect) {
-      return this.reply("❌ 未加入宗门，无法使用宗门商店");
-    }
-
-    let msg = ["🏬 宗门商店", "================================"];
-    msg.push(`🎖️ 你的贡献：${user.contribution}`);
-
-    this.sectShop.forEach((ss) => {
-      const item = this.items.find((i) => i.id === ss.itemId);
-      if (item) {
-        msg.push(`[${ss.id}] ${item.name} ×${ss.price || 1}`);
-        msg.push(`  兑换：${ss.contribution}贡献`);
-        msg.push(`  描述：${ss.description}`);
-        msg.push("--------------------------------");
-      }
-    });
-
-    msg.push("使用 #兑换贡献 [ID] 兑换物品");
-
-    await this.reply(msg.join("\n"));
-  }
-
-  /** 兑换贡献 */
-  async exchangeContribution() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-    const shopId = parseInt(this.e.msg.match(/^#兑换贡献\s+(\d+)$/)[1]);
-
-    if (!user.sect) {
-      return this.reply("❌ 未加入宗门，无法兑换");
-    }
-
-    const shopItem = this.sectShop.find((ss) => ss.id === shopId);
-    if (!shopItem) return this.reply("❌ 商品不存在");
-
-    if (user.contribution < shopItem.contribution) {
-      return this.reply(`❌ 贡献不足，需要 ${shopItem.contribution} 贡献`);
-    }
-
-    const item = this.items.find((i) => i.id === shopItem.itemId);
-    if (!item) return this.reply("❌ 物品数据异常");
-
-    // 更新数据
-    user.contribution -= shopItem.contribution;
-    user.inventory[shopItem.itemId] =
-      (user.inventory[shopItem.itemId] || 0) + (shopItem.price || 1);
-
-    this.saveData();
-
-    await this.reply(
-      [
-        `🔄 兑换成功！`,
-        `✅ 获得 ${item.name} ×${shopItem.price || 1}`,
-        `🎖️ 消耗 ${shopItem.contribution} 贡献`,
-        `📦 当前数量：${user.inventory[shopItem.itemId]}`,
-      ].join("\n")
-    );
-  }
-
-  /** 传功 */
-  async transferPower() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-    const match = this.e.msg.match(/^#传功\s*@?(\d+)?$/);
-    const targetId = match[1] || this.e.at;
-
-    if (!targetId) {
-      return this.reply("❌ 请@指定传功对象");
-    }
-
-    if (targetId === userId) {
-      return this.reply("❌ 不能对自己传功");
-    }
-
-    const targetUser = this.getUserData(targetId);
-
-    // 检查境界差距
-    if (user.realm < targetUser.realm + 3) {
-      return this.reply("❌ 传功者境界需高于接受者至少3个小境界");
-    }
-
-    // 传功消耗
-    const cost = 100000 * (targetUser.realm - user.realm + 3);
-    if (user.exp < cost) {
-      return this.reply(`❌ 修为不足，传功需要 ${cost} 修为`);
-    }
-
-    // 计算收益
-    const gain = Math.floor(cost * 0.7);
-
-    user.exp -= cost;
-    targetUser.exp += gain;
-
-    this.saveData();
-
-    await this.reply(
-      [
-        `✨ ${this.e.sender.card || this.e.sender.nickname} 向 ${
-          this.e.at
-        } 传功...`,
-        `💫 传功成功！`,
-        `📉 消耗修为：${cost}`,
-        `📈 对方获得修为：${gain}`,
-        `💖 大道同修，共证长生！`,
-      ].join("\n")
-    );
-  }
-
-  /** 渡劫记录 */
-  async tribulationRecords() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-
-    if (!user.tribulationRecords || user.tribulationRecords.length === 0) {
-      return this.reply("📭 暂无渡劫记录");
-    }
-
-    let msg = ["⚡ 渡劫记录", "================================"];
-
-    user.tribulationRecords
-      .slice(-10)
-      .reverse()
-      .forEach((record, index) => {
-        msg.push(`【第${user.tribulationRecords.length - index}次渡劫】`);
-        msg.push(`时间：${new Date(record.time).toLocaleString()}`);
-        msg.push(`天劫：${record.type}`);
-        msg.push(`结果：${record.success ? "成功" : "失败"}`);
-        if (!record.success) {
-          msg.push(`原因：${record.reason}`);
-        }
-        msg.push("--------------------------------");
-      });
-
-    await this.reply(msg.join("\n"));
-  }
-
-  // ==================== 核心修仙功能 ====================
 
   /** 每日签到 */
   async dailySign() {
@@ -1760,51 +872,55 @@ export class Cultivation extends plugin {
     if (isConsecutive) {
       user.signStreak += 1;
     } else {
-      user.signStreak = 1; // 重置连续签到
+      user.signStreak = 1;
     }
 
     // 基础奖励
-    let stoneReward = 100 + user.realm * 20;
-    let expReward = 50 + user.realm * 10;
+    let stoneReward = 200 + user.realm * 30;
+    let expReward = 100 + user.realm * 20;
+    let luckReward = 5;
     let extraMsg = "";
 
     // 连续签到奖励
     if (user.signStreak >= 7) {
       stoneReward *= 2;
       expReward *= 2;
+      luckReward = 10;
       extraMsg = "🎁 连续签到7天奖励翻倍！";
     } else if (user.signStreak >= 3) {
       stoneReward = Math.floor(stoneReward * 1.5);
       expReward = Math.floor(expReward * 1.5);
+      luckReward = 8;
       extraMsg = "🎁 连续签到3天奖励提升50%！";
     }
 
     // 气运加成
     const luckBonus = Math.floor(user.luck / 10);
-    stoneReward += luckBonus * 10;
-    expReward += luckBonus * 5;
+    stoneReward += luckBonus * 20;
+    expReward += luckBonus * 10;
 
     // 随机额外奖励
     let randomReward = "";
     const rand = Math.random();
-    if (rand < 0.1) {
-      // 10%概率获得丹药
-      const pillId = Math.min(8, Math.floor(Math.random() * 3) + 1);
-      if (!user.pills[pillId]) user.pills[pillId] = 0;
-      user.pills[pillId] += 1;
-      const pill = this.pills.find((p) => p.id === pillId);
-      randomReward = `，额外获得 ${pill.name}×1`;
-    } else if (rand < 0.2) {
-      // 10%概率增加气运
-      user.luck = Math.min(100, user.luck + 5);
-      randomReward = `，🍀气运+5`;
+    if (rand < 0.2) {
+      // 20%概率获得丹药
+      const pillId = Math.min(5, Math.floor(Math.random() * 3) + 1);
+      this.addToInventory(user, `pill_${pillId}`, 1);
+      randomReward = `，额外获得 ${this.pills[pillId - 1].name}×1`;
+    } else if (rand < 0.3) {
+      // 10%概率获得法宝
+      const artifactId = Math.min(3, Math.floor(Math.random() * 2) + 1);
+      if (!user.artifacts.includes(artifactId)) {
+        user.artifacts.push(artifactId);
+        randomReward = `，获得法宝 ${this.artifacts[artifactId - 1].name}！`;
+      }
     }
 
     // 更新用户数据
     user.stone += stoneReward;
     user.exp += expReward;
+    user.luck = Math.min(100, user.luck + luckReward);
     user.lastSign = now;
-    user.luck = Math.min(100, user.luck + 1); // 每日签到增加1点气运
 
     this.saveData();
 
@@ -1813,6 +929,7 @@ export class Cultivation extends plugin {
         "🎉 签到成功！获得修仙资源：",
         `💎 灵石 +${stoneReward}`,
         `✨ 修为 +${expReward}`,
+        `🍀 气运 +${luckReward}`,
         `📅 连续签到：${user.signStreak}天`,
         extraMsg,
         randomReward,
@@ -1822,79 +939,832 @@ export class Cultivation extends plugin {
     );
   }
 
-  /** 查看境界 */
-  async checkCultivation() {
+  /** 领取俸禄 */
+  async claimSalary() {
     const userId = this.e.user_id;
     const user = this.getUserData(userId);
-    const realmIndex = user.realm;
-    const realm = this.realms[realmIndex];
-    const nextRealm =
-      realmIndex < this.realms.length - 1
-        ? this.realms[realmIndex + 1]
-        : "已至巅峰";
 
-    // 计算属性加成
-    const spiritRoot = this.spiritRoots[user.spiritRoot];
-    const expRate = spiritRoot.expRate * (1 + user.comprehension * 0.1);
+    if (!user.sect) {
+      return this.reply("❌ 未加入宗门，无法领取俸禄");
+    }
 
-    const msg = [
-      `🧘 道号：${this.e.sender.card || this.e.sender.nickname}`,
-      `🌠 境界：${realm.name}（${user.exp}/${realm.maxExp}）`,
-      `✨ 灵根：${spiritRoot.name}（修炼效率×${expRate.toFixed(1)}）`,
-      `❤️ 生命：${user.life}/100`,
-      `🍀 气运：${user.luck}/100`,
-      `💎 灵石：${user.stone}`,
-      `⚔️ 战斗力：${user.combatPower}`,
-      `⬆️ 下一境界：${nextRealm.name || "已至巅峰"}`,
-      `⚡ 渡劫：${user.successCount}成功/${user.tribulationCount}次`,
-    ];
+    const now = Date.now();
+    const lastSalaryDate = user.lastSalary
+      ? new Date(user.lastSalary).toDateString()
+      : null;
+    const today = new Date(now).toDateString();
 
-    // 显示装备的法宝
-    if (user.equippedArtifact) {
-      const artifact = this.artifacts.find(
-        (a) => a.id === user.equippedArtifact
+    if (lastSalaryDate === today) {
+      return this.reply("❌ 今日俸禄已领取，请明日再来");
+    }
+
+    const sect = this.sects[user.sect];
+    if (!sect) {
+      return this.reply("❌ 宗门数据异常，无法领取俸禄");
+    }
+
+    // 获取职位信息
+    const title = this.sectTitles.find((t) => t.id === user.title);
+    if (!title) {
+      return this.reply("❌ 职位数据异常，无法领取俸禄");
+    }
+
+    // 基础俸禄
+    let salary = title.salary;
+
+    // 宗门等级加成
+    salary *= sect.level;
+
+    // 个人贡献加成
+    const contributionBonus = Math.min(1.0, user.contribution / 1000);
+    salary = Math.floor(salary * (1 + contributionBonus));
+
+    // 更新数据
+    user.stone += salary;
+    user.lastSalary = now;
+    user.contribution += 50; // 每日领取俸禄增加贡献
+
+    this.saveData();
+
+    await this.reply(
+      [
+        `🏯 成功领取 ${sect.name} 俸禄！`,
+        `🎖️ 职位：${title.name}`,
+        `💎 灵石 +${salary}`,
+        `📊 贡献加成：${Math.floor(contributionBonus * 100)}%`,
+        `🎖️ 宗门贡献 +50`,
+      ].join("\n")
+    );
+  }
+
+  /** 查看背包 */
+  async viewInventory() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+
+    if (!user.inventory || Object.keys(user.inventory).length === 0) {
+      return this.reply("📭 你的背包空空如也");
+    }
+
+    let msg = ["📦 背包物品："];
+
+    // 显示丹药
+    const pills = Object.keys(user.inventory)
+      .filter((id) => id.startsWith("pill_"))
+      .map((id) => {
+        const pillId = parseInt(id.split("_")[1]);
+        const pill = this.pills.find((p) => p.id === pillId);
+        return pill
+          ? `💊 ${pill.name} [ID: ${id}] ×${user.inventory[id]}`
+          : null;
+      })
+      .filter(Boolean);
+
+    if (pills.length > 0) {
+      msg.push("【丹药】", ...pills);
+    }
+
+    // 显示材料
+    const materials = Object.keys(user.inventory)
+      .filter((id) => id.startsWith("mat_"))
+      .map((id) => {
+        const matId = id.split("_")[1];
+        const count = user.inventory[id];
+        return `📦 ${this.getMaterialName(matId)} [ID: ${id}] ×${count}`;
+      });
+
+    if (materials.length > 0) {
+      msg.push("【材料】", ...materials);
+    }
+
+    // 显示其他物品
+    const others = Object.keys(user.inventory)
+      .filter((id) => !id.startsWith("pill_") && !id.startsWith("mat_"))
+      .map(
+        (id) => `🎁 ${this.getItemName(id)} [ID: ${id}] ×${user.inventory[id]}`
       );
-      msg.push(`🔮 法宝：${artifact.name}（${artifact.effect}）`);
+
+    if (others.length > 0) {
+      msg.push("【其他】", ...others);
     }
 
-    // 显示宗门信息
-    if (user.sect && this.sects[user.sect]) {
-      const sect = this.sects[user.sect];
-      const rank = this.sectRanks.find((r) => r.id === user.sectRank);
-      msg.push(`🏯 宗门：${sect.name}（${rank.name}）`);
-      msg.push(`🎖️ 贡献：${user.contribution}`);
-    }
-
-    // 显示签到信息
-    if (user.lastSign) {
-      const lastSignDate = new Date(user.lastSign);
-      const today = new Date();
-      const diffDays = Math.floor(
-        (today - lastSignDate) / (1000 * 60 * 60 * 24)
-      );
-
-      if (diffDays === 0) {
-        msg.push(`📅 今日已签到（连续${user.signStreak}天）`);
-      } else {
-        msg.push(`📅 已连续签到：${user.signStreak}天`);
-      }
-    }
+    msg.push("", "💡 使用 #使用物品 [物品ID] 使用物品");
+    msg.push("💡 物品ID可在物品名称后查看");
 
     await this.reply(msg.join("\n"));
   }
 
-  /** 日常修炼 */
+  /** 使用物品 */
+  async useItem() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+    const match = this.e.msg.match(/^#使用物品\s+(\S+)$/);
+
+    if (!match) {
+      return this.reply("❌ 格式错误，请使用 #使用物品 [物品ID]");
+    }
+
+    const itemId = match[1];
+
+    if (
+      !user.inventory ||
+      !user.inventory[itemId] ||
+      user.inventory[itemId] <= 0
+    ) {
+      return this.reply("❌ 没有此物品或物品数量不足");
+    }
+
+    // 减少物品数量
+    user.inventory[itemId] -= 1;
+    if (user.inventory[itemId] <= 0) {
+      delete user.inventory[itemId];
+    }
+
+    let effectMsg = "";
+
+    // 根据物品类型应用效果
+    if (itemId.startsWith("pill_")) {
+      const pillId = parseInt(itemId.split("_")[1]);
+      const pill = this.pills.find((p) => p.id === pillId);
+      if (pill) {
+        // 应用丹药效果
+        if (pill.effect.startsWith("exp:")) {
+          const exp = parseInt(pill.effect.split(":")[1]);
+          user.exp += exp;
+          effectMsg = `✨ 修为 +${exp}`;
+        } else if (pill.effect === "spirit_root") {
+          if (user.spiritRoot < this.spiritRoots.length - 1) {
+            user.spiritRoot += 1;
+            const root = this.spiritRoots[user.spiritRoot];
+            effectMsg = `🌱 灵根提升至：${root.name}`;
+          } else {
+            effectMsg = "✅ 灵根已达最高等级";
+          }
+        } else if (pill.effect.startsWith("life:")) {
+          const life = parseInt(pill.effect.split(":")[1]);
+          user.life = Math.min(user.maxLife, user.life + life);
+          effectMsg = `❤️ 生命值 +${life}`;
+        }
+      }
+    } else if (itemId.startsWith("buff_")) {
+      // 应用buff效果
+      effectMsg = "🛡️ 获得特殊效果，持续24小时";
+    }
+
+    this.saveData();
+
+    await this.reply(
+      [
+        `✅ 使用物品成功！`,
+        effectMsg,
+        `📦 剩余数量：${user.inventory[itemId] || 0}`,
+      ].join("\n")
+    );
+  }
+
+  /** 修仙商店 */
+  async cultivationShop() {
+    const shopList = this.shopItems
+      .map(
+        (item) =>
+          `${item.id}. ${item.name} - ${item.desc || "无描述"}\n  价格: ${
+            item.price
+          }灵石 | 类型: ${item.type} | 限购: ${item.limit || "无"}`
+      )
+      .join("\n\n");
+
+    await this.reply(
+      [
+        "🏪 修仙商店",
+        "================================",
+        shopList,
+        "================================",
+        "使用 #购买 [物品ID] [数量] 购买物品",
+        `💎 你的灵石数量: ${this.getUserData(this.e.user_id).stone || 0}`,
+      ].join("\n")
+    );
+  }
+
+  /** 购买物品 */
+  async buyItem() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+    const match = this.e.msg.match(/^#购买\s+(\d+)\s*(\d+)?$/);
+
+    if (!match) {
+      return this.reply("❌ 格式错误，请使用 #购买 [物品ID] [数量]");
+    }
+
+    const itemId = parseInt(match[1]);
+    const quantity = match[2] ? parseInt(match[2]) : 1;
+
+    const shopItem = this.shopItems.find((i) => i.id === itemId);
+    if (!shopItem) {
+      return this.reply("❌ 商品不存在");
+    }
+
+    // 检查购买限制
+    if (shopItem.limit) {
+      if (!user.shopLimits) user.shopLimits = {};
+      const bought = user.shopLimits[itemId] || 0;
+      if (bought + quantity > shopItem.limit) {
+        return this.reply(
+          `❌ 超过购买限制，今日还可购买 ${shopItem.limit - bought} 个`
+        );
+      }
+    }
+
+    // 计算总价
+    const totalPrice = shopItem.price * quantity;
+    if (user.stone < totalPrice) {
+      return this.reply(
+        `❌ 灵石不足！需要 ${totalPrice} 灵石，当前只有 ${user.stone} 灵石`
+      );
+    }
+
+    // 扣除灵石
+    user.stone -= totalPrice;
+
+    // 记录购买限制
+    if (shopItem.limit) {
+      user.shopLimits[itemId] = (user.shopLimits[itemId] || 0) + quantity;
+    }
+
+    // 添加物品到背包
+    if (shopItem.effect.startsWith("item:")) {
+      const pillId = parseInt(shopItem.effect.split(":")[1]);
+      this.addToInventory(user, `pill_${pillId}`, quantity);
+    } else if (shopItem.effect.startsWith("stone:")) {
+      const stone = parseInt(shopItem.effect.split(":")[1]) * quantity;
+      user.stone += stone;
+    } else {
+      this.addToInventory(user, shopItem.effect, quantity);
+    }
+
+    this.saveData();
+
+    await this.reply(
+      [
+        `🛒 购买成功！`,
+        `✅ 获得 ${shopItem.name} ×${quantity}`,
+        `💎 消耗灵石：${totalPrice}`,
+        `📦 当前灵石：${user.stone}`,
+      ].join("\n")
+    );
+  }
+
+  /** 添加物品到背包 */
+  addToInventory(user, itemId, quantity = 1) {
+    if (!user.inventory) user.inventory = {};
+    user.inventory[itemId] = (user.inventory[itemId] || 0) + quantity;
+  }
+
+  /** 查看境界体系 */
+  async realmSystem() {
+    const realmList = this.realms
+      .map(
+        (realm, index) =>
+          `${index + 1}. ${realm}${
+            index === 0
+              ? " (初始境界)"
+              : index === this.realms.length - 1
+              ? " (最高境界)"
+              : ""
+          }`
+      )
+      .join("\n");
+
+    await this.reply(
+      [
+        "🌌 修仙境界体系",
+        "================================",
+        "境界共分30层，每层突破需积累修为：",
+        realmList,
+        "================================",
+        "💡 境界越高，实力越强，可探索更多秘境",
+      ].join("\n")
+    );
+  }
+
+  /** 查看功法大全 */
+  async allArts() {
+    const artList = this.arts
+      .map(
+        (art) =>
+          `${art.id}. ${art.name} - ${art.desc}\n  效果: ${art.effect} | 境界要求: ${art.level} | 参悟消耗: ${art.cost}灵石`
+      )
+      .join("\n\n");
+
+    await this.reply(
+      [
+        "📚 功法大全",
+        "================================",
+        artList,
+        "================================",
+        "💡 使用 #领悟功法 随机领悟新功法",
+      ].join("\n")
+    );
+  }
+
+  /** 查看天劫大全 */
+  async allTribulations() {
+    const tribulationList = this.tribulations
+      .map(
+        (t) =>
+          `${t.id}. ${t.name} - ${t.desc}\n  伤害: ${t.damage}% | 基础成功率: ${t.successRate}% | 境界要求: ${t.level}`
+      )
+      .join("\n\n");
+
+    await this.reply(
+      [
+        "⚡ 天劫大全",
+        "================================",
+        "渡劫是修仙路上的重要考验，不同天劫有不同特点：",
+        tribulationList,
+        "================================",
+        "💡 使用 #渡劫准备 查看当前天劫信息",
+      ].join("\n")
+    );
+  }
+
+  /** 查看宗门列表 */
+  async sectList() {
+    if (Object.keys(this.sects).length === 0) {
+      return this.reply("📭 尚无宗门创建");
+    }
+
+    const sectList = Object.values(this.sects)
+      .map(
+        (sect) =>
+          `🏯 ${sect.name} (Lv.${sect.level}) - 成员: ${sect.members.length}人 - 宗主: ${sect.leaderName}`
+      )
+      .join("\n");
+
+    await this.reply(
+      [
+        "🏯 宗门列表",
+        "================================",
+        sectList,
+        "================================",
+        "💡 使用 #加入宗门 [名称] 加入宗门",
+      ].join("\n")
+    );
+  }
+
+  /** 宗门排行 */
+  async sectRank() {
+    if (Object.keys(this.sects).length === 0) {
+      return this.reply("📭 尚无宗门创建");
+    }
+
+    const rankedSects = Object.values(this.sects)
+      .sort(
+        (a, b) => b.level * 1000 + b.prestige - (a.level * 1000 + a.prestige)
+      )
+      .slice(0, 10);
+
+    const sectList = rankedSects
+      .map(
+        (sect, index) =>
+          `${index + 1}. ${sect.name} (Lv.${sect.level}) ⭐${
+            sect.prestige
+          } - 成员: ${sect.members.length}人`
+      )
+      .join("\n");
+
+    await this.reply(
+      [
+        "🏆 宗门排行榜",
+        "================================",
+        sectList,
+        "================================",
+        "💡 宗门等级和声望决定排名",
+      ].join("\n")
+    );
+  }
+
+  /** 查看法宝图鉴 */
+  async viewArtifacts() {
+    const artifactList = this.artifacts
+      .map(
+        (a) =>
+          `${a.id}. ${a.name} - ${a.effect}\n  类型: ${a.type} | 境界要求: ${a.level} | 炼制消耗: ${a.cost}灵石`
+      )
+      .join("\n\n");
+
+    await this.reply(
+      [
+        "🔮 法宝图鉴",
+        "================================",
+        artifactList,
+        "================================",
+        "💡 使用 #炼制法宝 [ID] 炼制法宝",
+      ].join("\n")
+    );
+  }
+
+  /** 宗门管理 */
+  async sectManagement() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+
+    if (!user.sect) {
+      return this.reply("❌ 你未加入任何宗门");
+    }
+
+    const sect = this.sects[user.sect];
+    if (!sect) {
+      return this.reply("❌ 宗门数据异常");
+    }
+
+    // 检查是否为宗主
+    if (sect.leader !== userId) {
+      return this.reply("❌ 只有宗主可以进行管理");
+    }
+
+    const match = this.e.msg.match(
+      /^#宗门管理\s+(公告|解散|升级|传位)\s*(.*)$/
+    );
+    const command = match[1];
+    const param = match[2].trim();
+
+    switch (command) {
+      case "公告":
+        sect.notice = param.substring(0, 100);
+        this.saveData();
+        await this.reply(`✅ 宗门公告已更新：\n${sect.notice}`);
+        break;
+
+      case "解散":
+        if (param !== "确认") {
+          return this.reply("❌ 请使用 #宗门管理 解散 确认 来解散宗门");
+        }
+        // 解散宗门
+        delete this.sects[user.sect];
+        Object.keys(this.userData).forEach((uid) => {
+          if (this.userData[uid].sect === user.sect) {
+            this.userData[uid].sect = null;
+            this.userData[uid].title = 1;
+          }
+        });
+        this.saveData();
+        await this.reply("⚠️ 宗门已解散！");
+        break;
+
+      case "升级":
+        const cost = sect.level * 5000;
+        if (sect.funds < cost) {
+          return this.reply(
+            `❌ 升级需要 ${cost} 灵石，当前资金: ${sect.funds}`
+          );
+        }
+        sect.funds -= cost;
+        sect.level += 1;
+        this.saveData();
+        await this.reply(`🎉 宗门升级成功！当前等级: Lv.${sect.level}`);
+        break;
+
+      case "传位":
+        const targetUser = this.getUserData(param);
+        if (!targetUser || targetUser.sect !== user.sect) {
+          return this.reply("❌ 目标用户不存在或不在本宗门");
+        }
+        sect.leader = param;
+        sect.leaderName = this.e.sender.card || this.e.sender.nickname;
+        user.title = 7; // 设为副宗主
+        targetUser.title = 8; // 设为宗主
+        this.saveData();
+        await this.reply(`👑 已将宗主之位传给 ${param}`);
+        break;
+
+      default:
+        await this.reply("❌ 未知管理命令");
+    }
+  }
+
+  /** 宗门任务 */
+  async sectMission() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+
+    if (!user.sect) {
+      return this.reply("❌ 未加入宗门，无法接取任务");
+    }
+
+    if (user.currentMission) {
+      return this.reply("❌ 你已有进行中的任务，请先完成");
+    }
+
+    // 随机选择一个任务
+    const mission =
+      this.sectMissions[Math.floor(Math.random() * this.sectMissions.length)];
+    user.currentMission = mission.id;
+
+    this.saveData();
+
+    await this.reply(
+      [
+        `📜 接取宗门任务成功！`,
+        `✅ 任务名称: ${mission.name}`,
+        `📝 任务要求: ${mission.requirement}`,
+        `🎁 任务奖励: ${mission.reward}`,
+        `⚠️ 难度: ${mission.difficulty}`,
+        `💡 完成后来 #提交任务`,
+      ].join("\n")
+    );
+  }
+
+  /** 提交任务 */
+  async submitMission() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+
+    if (!user.sect) {
+      return this.reply("❌ 未加入宗门，无法提交任务");
+    }
+
+    if (!user.currentMission) {
+      return this.reply("❌ 没有进行中的任务");
+    }
+
+    const sect = this.sects[user.sect];
+    if (!sect) {
+      return this.reply("❌ 宗门数据异常");
+    }
+
+    const mission = this.sectMissions.find((m) => m.id === user.currentMission);
+    if (!mission) {
+      return this.reply("❌ 任务数据异常");
+    }
+
+    // 根据难度给予奖励
+    let stoneReward = 0;
+    let contribReward = 0;
+
+    switch (mission.difficulty) {
+      case "简单":
+        stoneReward = 200;
+        contribReward = 50;
+        break;
+      case "普通":
+        stoneReward = 500;
+        contribReward = 100;
+        break;
+      case "困难":
+        stoneReward = 1000;
+        contribReward = 200;
+        break;
+      case "极难":
+        stoneReward = 3000;
+        contribReward = 500;
+        break;
+      case "地狱":
+        stoneReward = 8000;
+        contribReward = 1000;
+        break;
+    }
+
+    // 额外奖励
+    let extraMsg = "";
+    if (Math.random() < 0.3) {
+      const pillId = Math.floor(Math.random() * 5) + 1;
+      this.addToInventory(user, `pill_${pillId}`, 1);
+      extraMsg = `，额外获得 ${this.pills[pillId - 1].name}×1`;
+    }
+
+    // 更新数据
+    user.stone += stoneReward;
+    user.contribution += contribReward;
+    sect.funds += Math.floor(stoneReward / 2);
+    sect.prestige += Math.floor(contribReward / 10);
+    user.currentMission = null;
+
+    this.saveData();
+
+    await this.reply(
+      [
+        `✅ 任务完成！`,
+        `💎 获得灵石: ${stoneReward}`,
+        `🎖️ 获得贡献: ${contribReward}`,
+        `🏯 宗门声望 +${Math.floor(contribReward / 10)}`,
+        mission.difficulty === "地狱"
+          ? `🎉 完成高难度任务${extraMsg}`
+          : extraMsg,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    );
+  }
+
+  /** 炼器 */
+  async artifactRefining() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+    const now = Date.now();
+
+    // 冷却时间12小时
+    if (now - user.lastRefine < 12 * 60 * 60 * 1000) {
+      const remaining = Math.ceil(
+        (12 * 60 * 60 * 1000 - (now - user.lastRefine)) / 3600000
+      );
+      return this.reply(`⏳ 炼器需准备，请${remaining}小时后再试`);
+    }
+
+    // 消耗灵石
+    const cost = 5000;
+    if (user.stone < cost) {
+      return this.reply(`❌ 炼器需要 ${cost} 灵石`);
+    }
+
+    user.stone -= cost;
+    user.lastRefine = now;
+
+    // 炼器结果
+    const successRate = 60 + user.spiritRoot * 5 + Math.floor(user.luck / 10);
+    const success = Math.random() * 100 < successRate;
+
+    if (success) {
+      // 成功 - 获得随机法宝
+      const availableArtifacts = this.artifacts.filter(
+        (a) => a.level <= user.realm && !user.artifacts.includes(a.id)
+      );
+
+      if (availableArtifacts.length > 0) {
+        const artifact =
+          availableArtifacts[
+            Math.floor(Math.random() * availableArtifacts.length)
+          ];
+        user.artifacts.push(artifact.id);
+
+        await this.reply(
+          [
+            `🔥 炼器成功！`,
+            `🔮 获得法宝: ${artifact.name}`,
+            `📊 效果: ${artifact.effect}`,
+            `💎 消耗灵石: ${cost}`,
+          ].join("\n")
+        );
+      } else {
+        // 没有可获得的法宝，给予灵石补偿
+        const compensation = cost * 2;
+        user.stone += compensation;
+
+        await this.reply(
+          [
+            `🔥 炼器成功，但未获得新法宝`,
+            `💎 获得灵石补偿: ${compensation}`,
+            `💡 提示: 提升境界可解锁更多法宝`,
+          ].join("\n")
+        );
+      }
+    } else {
+      // 失败 - 获得炼器材料
+      const materials = ["玄铁", "精金", "星辰沙", "凤凰羽", "龙鳞"];
+      const mat = materials[Math.floor(Math.random() * materials.length)];
+      const matCount = 3 + Math.floor(Math.random() * 5);
+
+      this.addToInventory(user, `mat_${mat}`, matCount);
+
+      await this.reply(
+        [
+          `💥 炼器失败！`,
+          `📦 获得材料: ${mat} ×${matCount}`,
+          `💎 消耗灵石: ${cost}`,
+          `💡 下次炼器成功率提升10%`,
+        ].join("\n")
+      );
+    }
+
+    this.saveData();
+  }
+
+  /** 获取材料名称 */
+  getMaterialName(matId) {
+    const materials = {
+      玄铁: "玄铁矿石",
+      精金: "精金矿",
+      星辰沙: "星辰沙",
+      凤凰羽: "凤凰羽毛",
+      龙鳞: "龙鳞",
+      灵玉: "灵玉",
+      天蚕丝: "天蚕丝",
+    };
+    return materials[matId] || matId;
+  }
+
+  /** 获取物品名称 */
+  getItemName(itemId) {
+    if (itemId.startsWith("pill_")) {
+      const pillId = parseInt(itemId.split("_")[1]);
+      const pill = this.pills.find((p) => p.id === pillId);
+      return pill ? pill.name : "未知丹药";
+    }
+    if (itemId.startsWith("mat_")) {
+      return this.getMaterialName(itemId.split("_")[1]);
+    }
+    return "未知物品";
+  }
+
+  /** 查看天劫信息 */
+  async tribulationInfo() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+
+    if (user.realm < this.realms.length - 3) {
+      return this.reply("❌ 境界不足！至少需要渡劫初期才可查看天劫信息");
+    }
+
+    // 随机选择天劫类型
+    const tribulationType =
+      this.tribulations[Math.floor(Math.random() * this.tribulations.length)];
+
+    // 计算成功率
+    const baseRate = tribulationType.successRate;
+    const pillBonus = user.pills[5] ? user.pills[5] * 5 : 0; // 渡劫丹加成
+    const luckBonus = Math.floor(user.luck / 3);
+    const daoHeartBonus = user.daoHeart * 8;
+
+    // 功法加成
+    let artBonus = 0;
+    user.arts.forEach((artId) => {
+      const art = this.arts.find((a) => a.id === artId);
+      if (art && art.effect.includes("tribulation")) {
+        artBonus += 15;
+      }
+    });
+
+    // 法宝加成
+    let artifactBonus = 0;
+    if (user.equippedArtifact) {
+      const artifact = this.artifacts.find(
+        (a) => a.id === user.equippedArtifact
+      );
+      if (artifact && artifact.effect.includes("天劫伤害")) {
+        artifactBonus = 10;
+      }
+    }
+
+    const successRate = Math.min(
+      95,
+      baseRate +
+        pillBonus +
+        luckBonus +
+        daoHeartBonus +
+        artBonus +
+        artifactBonus
+    );
+
+    const msg = [
+      `⚡ 天劫预兆：${tribulationType.name}`,
+      `📜 ${tribulationType.desc}`,
+      `💔 预计伤害：${tribulationType.damage}%生命值`,
+      `✅ 当前渡劫成功率：${successRate}%`,
+      `🍀 气运值：${user.luck}/100`,
+      `💖 道心：${user.daoHeart.toFixed(1)}/10`,
+      `🔮 渡劫丹：${user.pills[5] || 0}枚`,
+      `📜 护体功法：${artBonus > 0 ? "已掌握" : "未掌握"}`,
+      `🔧 护身法宝：${artifactBonus > 0 ? "已装备" : "未装备"}`,
+      `💡 使用 #渡劫准备 查看详细准备建议`,
+    ];
+
+    await this.reply(msg.join("\n"));
+  }
+
+  /** 渡劫准备 */
+  async tribulationPreparation() {
+    const advice = [
+      "🌟 渡劫准备建议：",
+      "1. 确保生命值全满（使用 #修炼 或丹药恢复）",
+      "2. 准备足够的渡劫丹（#炼丹 5）",
+      "3. 装备护身法宝（#装备法宝）",
+      "4. 学习护体功法（#领悟功法）",
+      "5. 提升气运值（#奇遇 或使用气运符）",
+      "6. 道心稳固（通过突破失败积累道心）",
+      "",
+      "💎 推荐资源：",
+      "  - 渡劫丹：增加20%成功率/枚",
+      "  - 玄武盾：减少10%天劫伤害",
+      "  - 《太虚剑意》：提升20%渡劫成功率",
+      "  - 九转还魂丹：渡劫失败保命",
+      "",
+      "⚠️ 警告：渡劫失败可能导致境界跌落！",
+    ];
+
+    await this.reply(advice.join("\n"));
+  }
+
+  /** 修炼功能 */
   async cultivate() {
     const userId = this.e.user_id;
     const user = this.getUserData(userId);
     const now = Date.now();
 
-    // 检查修炼CD（30分钟）
-    if (now - user.lastCultivate < 1800000) {
+    // 检查修炼CD（5分钟）
+    if (now - user.lastCultivate < 5 * 60 * 1000) {
       const remaining = Math.ceil(
-        (1800000 - (now - user.lastCultivate)) / 60000
+        (5 * 60 * 1000 - (now - user.lastCultivate)) / 1000
       );
-      return this.reply(`🕒 修炼需调息，请${remaining}分钟后再试`);
+      return this.reply(`🕒 修炼需调息，请${remaining}秒后再试`);
     }
 
     // 基础修炼收益
@@ -1926,13 +1796,10 @@ export class Cultivation extends plugin {
     user.combatPower += Math.floor(expGain / 50);
 
     // 检查是否达到突破要求
-    const currentRealm = this.realms[user.realm];
-    if (
-      user.exp >= currentRealm.maxExp &&
-      user.realm < this.realms.length - 1
-    ) {
-      const nextRealm = this.realms[user.realm + 1];
-      extraMsg += `\n🌅 修为已达圆满，可尝试 #突破 至 ${nextRealm.name}！`;
+    if (user.exp >= user.maxExp && user.realm < this.realms.length - 1) {
+      extraMsg += `\n🌅 修为已达圆满，可尝试 #突破 至 ${
+        this.realms[user.realm + 1]
+      }！`;
     }
 
     this.saveData();
@@ -1940,7 +1807,7 @@ export class Cultivation extends plugin {
     await this.reply(
       [
         `🧘 运转周天，炼化天地灵气...`,
-        `✅ 修为 +${expGain}（当前：${user.exp}/${currentRealm.maxExp}）`,
+        `✅ 修为 +${expGain}（当前：${user.exp}/${user.maxExp}）`,
         extraMsg,
       ].join("\n")
     );
@@ -1950,12 +1817,11 @@ export class Cultivation extends plugin {
   async breakthrough() {
     const userId = this.e.user_id;
     const user = this.getUserData(userId);
-    const currentRealm = this.realms[user.realm];
 
     // 检查是否达到突破要求
-    if (user.exp < currentRealm.maxExp) {
+    if (user.exp < user.maxExp) {
       return this.reply(
-        `❌ 修为不足！还需 ${currentRealm.maxExp - user.exp} 点修为方可突破`
+        `❌ 修为不足！还需 ${user.maxExp - user.exp} 点修为方可突破`
       );
     }
 
@@ -2014,20 +1880,20 @@ export class Cultivation extends plugin {
     if (success) {
       // 突破成功
       user.realm++;
-      const newRealm = this.realms[user.realm];
       user.exp = 0;
+      user.maxExp = Math.floor(user.maxExp * 1.8);
       user.combatPower += 50;
       user.daoHeart = Math.min(10, user.daoHeart + 0.5);
 
       await this.reply(
         [
           `🌈 突破成功！`,
-          `🎉 境界提升至：${newRealm.name}！`,
+          `🎉 境界提升至：${this.realms[user.realm]}！`,
           `💎 消耗灵石：${stoneCost}`,
           `❤️ 生命上限提升！`,
-          `✨ 下一境界：${
-            this.realms[user.realm + 1]?.name || "已至巅峰"
-          }（需 ${newRealm.maxExp} 修为）`,
+          `✨ 下一境界：${this.realms[user.realm + 1]}（需 ${
+            user.maxExp
+          } 修为）`,
         ].join("\n")
       );
     } else {
@@ -2050,72 +1916,6 @@ export class Cultivation extends plugin {
     this.saveData();
   }
 
-  /** 渡劫准备 */
-  async tribulationPreparation() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-
-    if (user.realm < this.realms.length - 3) {
-      return this.reply("❌ 境界不足！至少需要渡劫初期才可准备渡劫");
-    }
-
-    // 随机选择天劫类型
-    const tribulationType =
-      this.tribulationTypes[
-        Math.floor(Math.random() * this.tribulationTypes.length)
-      ];
-
-    // 计算成功率
-    const baseRate = 30;
-    const pillBonus = user.pills[5] ? user.pills[5] * 5 : 0; // 渡劫丹加成
-    const luckBonus = Math.floor(user.luck / 3);
-    const daoHeartBonus = user.daoHeart * 8;
-
-    // 功法加成
-    let artBonus = 0;
-    user.arts.forEach((artId) => {
-      const art = this.arts.find((a) => a.id === artId);
-      if (art && art.effect.includes("tribulation")) {
-        artBonus += 15;
-      }
-    });
-
-    // 法宝加成
-    let artifactBonus = 0;
-    if (user.equippedArtifact) {
-      const artifact = this.artifacts.find(
-        (a) => a.id === user.equippedArtifact
-      );
-      if (artifact && artifact.effect.includes("天劫伤害")) {
-        artifactBonus = 10;
-      }
-    }
-
-    const successRate = Math.min(
-      95,
-      baseRate +
-        pillBonus +
-        luckBonus +
-        daoHeartBonus +
-        artBonus +
-        artifactBonus
-    );
-
-    const msg = [
-      `⚡ 天劫预兆：${tribulationType.name}`,
-      `📜 ${tribulationType.description}`,
-      `💔 预计伤害：${tribulationType.damage}%生命值`,
-      `✅ 当前渡劫成功率：${successRate}%`,
-      `🍀 气运值：${user.luck}/100`,
-      `💖 道心：${user.daoHeart.toFixed(1)}/10`,
-      `🔮 渡劫丹：${user.pills[5] || 0}枚`,
-      `📜 护体功法：${artBonus > 0 ? "已掌握" : "未掌握"}`,
-      `🔧 护身法宝：${artifactBonus > 0 ? "已装备" : "未装备"}`,
-    ];
-
-    await this.reply(msg.join("\n"));
-  }
-
   /** 渡劫飞升 */
   async tribulation() {
     const userId = this.e.user_id;
@@ -2126,10 +1926,9 @@ export class Cultivation extends plugin {
       return this.reply(`❌ 境界不足！需达到渡劫初期方可渡劫`);
     }
 
-    const currentRealm = this.realms[user.realm];
-    if (user.exp < currentRealm.maxExp) {
+    if (user.exp < user.maxExp) {
       return this.reply(
-        `❌ 修为不足！还需 ${currentRealm.maxExp - user.exp} 点修为方可渡劫`
+        `❌ 修为不足！还需 ${user.maxExp - user.exp} 点修为方可渡劫`
       );
     }
 
@@ -2137,12 +1936,10 @@ export class Cultivation extends plugin {
 
     // 随机选择天劫类型
     const tribulationType =
-      this.tribulationTypes[
-        Math.floor(Math.random() * this.tribulationTypes.length)
-      ];
+      this.tribulations[Math.floor(Math.random() * this.tribulations.length)];
 
     // 渡劫成功率计算
-    const baseSuccessRate = 30; // 基础成功率30%
+    const baseSuccessRate = tribulationType.successRate;
     const pillBonus = user.pills[5] ? user.pills[5] * 5 : 0; // 渡劫丹加成
     const luckBonus = Math.floor(user.luck / 3); // 气运加成
     const daoHeartBonus = user.daoHeart * 8; // 道心加成
@@ -2181,33 +1978,31 @@ export class Cultivation extends plugin {
     let resultMsg = [];
 
     resultMsg.push(`⚡ ${tribulationType.name}降临！`);
-    resultMsg.push(tribulationType.description);
 
-    // 记录渡劫
-    const record = {
-      time: Date.now(),
-      type: tribulationType.name,
-      success: success,
-      reason: "",
+    // 添加天劫特效描述
+    const tribulationDesc = {
+      三九天劫: "天空乌云密布，二十七道天雷接连劈下！",
+      六九天劫: "六重雷云笼罩天地，五十四道神雷撕裂苍穹！",
+      九九天劫: "九霄神雷汇聚，八十一道灭世雷霆轰然而至！",
+      心魔劫: "内心深处的恐惧被无限放大，心魔丛生！",
+      业火劫: "红莲业火从脚下升起，焚烧神魂！",
+      混沌劫: "混沌之气弥漫，万物归于虚无！",
     };
 
-    if (!user.tribulationRecords) user.tribulationRecords = [];
-    user.tribulationRecords.push(record);
-    if (user.tribulationRecords.length > 20) {
-      user.tribulationRecords.shift(); // 保留最近20条记录
-    }
+    resultMsg.push(tribulationDesc[tribulationType.name]);
 
     if (success) {
       // 渡劫成功
       user.successCount++;
-      user.realm = Math.min(this.realms.length - 1, user.realm + 1);
-      const newRealm = this.realms[user.realm];
+      user.realm = this.realms.length - 1; // 飞升期
       user.exp = 0;
+      user.maxExp = 999999;
       user.life = 200;
       user.combatPower += 1000;
 
       resultMsg.push(`🌈 霞光万道，仙门大开！`);
-      resultMsg.push(`🎉 渡劫成功！境界提升至：${newRealm.name}！`);
+      resultMsg.push(`🎉 渡劫成功！飞升仙界！`);
+      resultMsg.push(`✨ 当前境界：${this.realms[user.realm]}`);
 
       // 宗门奖励
       if (user.sect && this.sects[user.sect]) {
@@ -2224,7 +2019,6 @@ export class Cultivation extends plugin {
       );
       user.life = Math.max(1, user.life - damage);
       user.daoHeart = Math.max(0.1, user.daoHeart - 1);
-      record.reason = "天劫威力过大";
 
       // 如果有九转还魂丹则保命
       if (user.pills[6] && user.pills[6] > 0) {
@@ -2235,8 +2029,7 @@ export class Cultivation extends plugin {
       } else {
         user.realm = Math.max(0, user.realm - 3);
         user.exp = 0;
-        const fallenRealm = this.realms[user.realm];
-        resultMsg.push(`💥 渡劫失败，境界跌落至 ${fallenRealm.name}`);
+        resultMsg.push(`💥 渡劫失败，境界跌落至 ${this.realms[user.realm]}`);
       }
 
       resultMsg.push(`❤️ 生命值降为${user.life}`);
@@ -2302,7 +2095,7 @@ export class Cultivation extends plugin {
     const pillList = this.pills
       .map(
         (p) =>
-          `${p.id}. ${p.name} ★${p.quality} - ${p.description}\n  效果: ${
+          `${p.id}. ${p.name} ★${p.quality} - ${p.desc}\n  效果: ${
             p.effect > 0
               ? `+${p.effect}修为`
               : p.id === 8
@@ -2328,7 +2121,13 @@ export class Cultivation extends plugin {
   async alchemy() {
     const userId = this.e.user_id;
     const user = this.getUserData(userId);
-    const pillId = parseInt(this.e.msg.match(/^#炼丹\s+(\d+)$/)[1]);
+    const match = this.e.msg.match(/^#炼丹\s+(\d+)$/);
+
+    if (!match) {
+      return this.reply("❌ 格式错误，请使用 #炼丹 [丹药ID]");
+    }
+
+    const pillId = parseInt(match[1]);
 
     const pill = this.pills.find((p) => p.id === pillId);
     if (!pill) return this.reply("❌ 丹方不存在");
@@ -2373,7 +2172,13 @@ export class Cultivation extends plugin {
   async takePill() {
     const userId = this.e.user_id;
     const user = this.getUserData(userId);
-    const pillId = parseInt(this.e.msg.match(/^#服用丹药\s+(\d+)$/)[1]);
+    const match = this.e.msg.match(/^#服用丹药\s+(\d+)$/);
+
+    if (!match) {
+      return this.reply("❌ 格式错误，请使用 #服用丹药 [丹药ID]");
+    }
+
+    const pillId = parseInt(match[1]);
 
     const pill = this.pills.find((p) => p.id === pillId);
     if (!pill) return this.reply("❌ 丹药不存在");
@@ -2384,15 +2189,14 @@ export class Cultivation extends plugin {
 
     user.pills[pillId]--;
 
-    if (pill.effect > 0) {
+    if (pill.effect.startsWith("exp:")) {
       // 修为丹药
-      user.exp += pill.effect;
+      const exp = parseInt(pill.effect.split(":")[1]);
+      user.exp += exp;
       await this.reply(
         [
           `🍵 服用 ${pill.name}，灵力涌动...`,
-          `✨ 修为 +${pill.effect}（当前：${user.exp}/${
-            this.realms[user.realm].maxExp
-          }）`,
+          `✨ 修为 +${exp}（当前：${user.exp}/${user.maxExp}）`,
         ].join("\n")
       );
     } else if (pill.id === 8) {
@@ -2415,30 +2219,23 @@ export class Cultivation extends plugin {
         await this.reply(
           [
             `🍵 服用 ${pill.name}，但灵根已至极限`,
-            `✨ 修为 +100000（当前：${user.exp}/${
-              this.realms[user.realm].maxExp
-            }）`,
+            `✨ 修为 +100000（当前：${user.exp}/${user.maxExp}）`,
           ].join("\n")
         );
       }
-    } else if (pill.id === 9) {
-      // 悟道丹 - 提升悟性
-      user.comprehension = Math.min(10, user.comprehension + 0.5);
+    } else if (pill.effect.startsWith("life:")) {
+      // 恢复丹药
+      const life = parseInt(pill.effect.split(":")[1]);
+      user.life = Math.min(100, user.life + life);
       await this.reply(
         [
-          `🍵 服用 ${pill.name}，灵台清明...`,
-          `🧠 悟性 +0.5（当前：${user.comprehension}）`,
+          `🍵 服用 ${pill.name}，伤势恢复...`,
+          `❤️ 生命值 +${life}（当前：${user.life}/100）`,
         ].join("\n")
       );
     } else {
       // 特殊丹药
-      user.life = Math.min(100, user.life + 50);
-      await this.reply(
-        [
-          `🍵 服用 ${pill.name}，伤势恢复...`,
-          `❤️ 生命值 +50（当前：${user.life}/100）`,
-        ].join("\n")
-      );
+      await this.reply(`✅ 服用 ${pill.name}，效果已生效`);
     }
 
     this.saveData();
@@ -2459,10 +2256,10 @@ export class Cultivation extends plugin {
     const hours = unit === "天" ? duration * 24 : duration * 2;
     const ms = hours * 60 * 60 * 1000;
 
-    // 检查闭关CD（24小时）
-    if (now - user.lastSeclusion < 86400000) {
+    // 检查闭关CD（6小时）
+    if (now - user.lastSeclusion < 6 * 60 * 60 * 1000) {
       const remaining = Math.ceil(
-        (86400000 - (now - user.lastSeclusion)) / 3600000
+        (6 * 60 * 60 * 1000 - (now - user.lastSeclusion)) / 3600000
       );
       return this.reply(`🕒 心魔未消，请${remaining}小时后再闭关`);
     }
@@ -2493,9 +2290,7 @@ export class Cultivation extends plugin {
       [
         `🧘 开始闭关修炼 ${duration}${unit}...`,
         `🕒 时光飞逝，闭关结束`,
-        `✨ 修为 +${expGain}（当前：${user.exp}/${
-          this.realms[user.realm].maxExp
-        })`,
+        `✨ 修为 +${expGain}（当前：${user.exp}/${user.maxExp})`,
         `💎 消耗灵石：${stoneCost}`,
         `🍀 气运 +5`,
         `⚔️ 战斗力 +${Math.floor(expGain / 100)}`,
@@ -2520,7 +2315,10 @@ export class Cultivation extends plugin {
     }
 
     // 随机选择未领悟的功法
-    const availableArts = this.arts.filter((a) => !user.arts.includes(a.id));
+    const availableArts = this.arts.filter(
+      (art) => !user.arts.includes(art.id)
+    );
+
     if (availableArts.length === 0) return;
 
     const newArt =
@@ -2567,10 +2365,10 @@ export class Cultivation extends plugin {
     const user = this.getUserData(userId);
     const now = Date.now();
 
-    // 奇遇CD（8小时）
-    if (now - user.lastAdventure < 28800000) {
+    // 奇遇CD（2小时）
+    if (now - user.lastAdventure < 2 * 60 * 60 * 1000) {
       const remaining = Math.ceil(
-        (28800000 - (now - user.lastAdventure)) / 3600000
+        (2 * 60 * 60 * 1000 - (now - user.lastAdventure)) / 3600000
       );
       return this.reply(`🕒 机缘未至，请${remaining}小时后再探索`);
     }
@@ -2663,11 +2461,6 @@ export class Cultivation extends plugin {
     await this.reply(
       [`🌄 探索修仙界...`, `✨ 奇遇：${event.name}`, result].join("\n")
     );
-
-    // 检查是否有任务完成
-    if (user.currentMission) {
-      await this.completeMission(userId);
-    }
   }
 
   /** 挑战秘境 */
@@ -2680,23 +2473,27 @@ export class Cultivation extends plugin {
     const match = this.e.msg.match(/^#挑战秘境\s*(\d+)?$/);
     let dungeonLevel = match[1] ? parseInt(match[1]) : 1;
 
-    // 检查CD（4小时）
-    if (now - user.lastDungeon < 14400000) {
+    // 检查CD（1小时）
+    if (now - user.lastDungeon < 60 * 60 * 1000) {
       const remaining = Math.ceil(
-        (14400000 - (now - user.lastDungeon)) / 3600000
+        (60 * 60 * 1000 - (now - user.lastDungeon)) / 3600000
       );
       return this.reply(`🕒 秘境尚未恢复，请${remaining}小时后再挑战`);
     }
 
     // 检查境界是否足够
-    if (dungeonLevel < 1 || dungeonLevel > 5) {
-      return this.reply(`❌ 秘境层级 ${dungeonLevel} 不存在，可用层级：1-5`);
+    const dungeon = this.dungeons[dungeonLevel - 1];
+    if (!dungeon) {
+      return this.reply(
+        `❌ 秘境层级 ${dungeonLevel} 不存在，可用层级：1-${this.dungeons.length}`
+      );
     }
 
-    const minRealm = [0, 4, 8, 12, 20][dungeonLevel - 1];
-    if (user.realm < minRealm) {
+    if (user.realm < dungeon.minRealm) {
       return this.reply(
-        `❌ 境界不足！需要 ${this.realms[minRealm].name} 才能挑战层级${dungeonLevel}秘境`
+        `❌ 境界不足！需要 ${this.realms[dungeon.minRealm]} 才能挑战 ${
+          dungeon.name
+        }`
       );
     }
 
@@ -2706,7 +2503,7 @@ export class Cultivation extends plugin {
     const successRate = 60 + user.combatPower * 0.1 + user.luck / 2;
     const success = Math.random() * 100 < successRate;
 
-    let resultMsg = [`🏞️ 进入秘境层级 ${dungeonLevel}...`];
+    let resultMsg = [`🏞️ 进入秘境：${dungeon.name}...`];
 
     if (success) {
       // 秘境挑战成功
@@ -2774,11 +2571,6 @@ export class Cultivation extends plugin {
 
     this.saveData();
     await this.reply(resultMsg.join("\n"));
-
-    // 检查是否有任务完成
-    if (user.currentMission) {
-      await this.completeMission(userId);
-    }
   }
 
   /** 双修 */
@@ -2855,7 +2647,7 @@ export class Cultivation extends plugin {
     // 检查境界
     if (user.realm < artifact.level * 2) {
       return this.reply(
-        `❌ 境界不足！需要 ${this.realms[artifact.level * 2].name} 才能炼制 ${
+        `❌ 境界不足！需要 ${this.realms[artifact.level * 2]} 才能炼制 ${
           artifact.name
         }`
       );
@@ -2951,8 +2743,6 @@ export class Cultivation extends plugin {
     }
 
     const sect = this.sects[user.sect];
-    const rank = this.sectRanks.find((r) => r.id === user.sectRank);
-
     let msg = [
       `🏯 宗门：${sect.name}`,
       `⭐ 等级：${sect.level}`,
@@ -2960,7 +2750,6 @@ export class Cultivation extends plugin {
       `💎 资金：${sect.funds}`,
       `👥 成员：${sect.members.length}人`,
       `👑 宗主：${sect.leaderName}`,
-      `👤 你的职位：${rank.name}`,
       `📜 宗门福利：`,
       `  每日灵石：${sect.level * 50}`,
       `  每周资金：${sect.members.length * 100 * sect.level}`,
@@ -2971,20 +2760,19 @@ export class Cultivation extends plugin {
     // 显示宗门成员（最多10人）
     if (sect.members.length > 0) {
       msg.push("\n👥 核心成员：");
-      const topMembers = sect.members.slice(0, 5).map((id) => {
-        const member = this.userData[id];
-        const memberRank = this.sectRanks.find((r) => r.id === member.sectRank);
-        return {
-          id,
-          name: this.getUserName(id),
-          realm: member.realm,
-          rank: memberRank.name,
-        };
-      });
+      const topMembers = sect.members
+        .map((id) => this.getUserData(id))
+        .sort((a, b) => b.realm - a.realm || b.combatPower - a.combatPower)
+        .slice(0, 5);
 
       topMembers.forEach((member) => {
+        const title =
+          this.sectTitles.find((t) => t.id === member.title)?.name ||
+          "未知职位";
         msg.push(
-          `  ${member.rank} ${member.name} - ${this.realms[member.realm].name}`
+          `  ${title} ${this.e.sender.card || this.e.sender.nickname} - ${
+            this.realms[member.realm]
+          }`
         );
       });
     }
@@ -3023,7 +2811,7 @@ export class Cultivation extends plugin {
     }
 
     user.sect = sectId;
-    user.sectRank = 1; // 外门弟子
+    user.title = 1; // 外门弟子
     sect.members.push(userId);
 
     this.saveData();
@@ -3034,6 +2822,7 @@ export class Cultivation extends plugin {
         `👥 当前成员：${sect.members.length}人`,
         `📜 宗门公告：${sect.notice || "暂无公告"}`,
         `💎 每日可领取 ${sect.level * 50} 灵石福利`,
+        `💰 使用 #领取俸禄 获取每日资源`,
       ].join("\n")
     );
   }
@@ -3078,7 +2867,7 @@ export class Cultivation extends plugin {
     };
 
     user.sect = sectId;
-    user.sectRank = 8; // 宗主
+    user.title = 8; // 宗主
 
     this.saveData();
 
@@ -3089,59 +2878,7 @@ export class Cultivation extends plugin {
         `👑 宗主：${this.e.sender.card || this.e.sender.nickname}`,
         `📢 使用 #宗门 查看宗门信息`,
         `💎 初始资金：1000灵石`,
-      ].join("\n")
-    );
-  }
-
-  /** 领取俸禄 */
-  async claimSalary() {
-    const userId = this.e.user_id;
-    const user = this.getUserData(userId);
-
-    if (!user.sect) {
-      return this.reply("❌ 未加入宗门，无法领取俸禄");
-    }
-
-    const now = Date.now();
-    const lastSalaryDate = user.lastSalary
-      ? new Date(user.lastSalary).toDateString()
-      : null;
-    const today = new Date(now).toDateString();
-
-    if (lastSalaryDate === today) {
-      return this.reply("❌ 今日俸禄已领取，请明日再来");
-    }
-
-    const sect = this.sects[user.sect];
-    if (!sect) {
-      return this.reply("❌ 宗门数据异常，无法领取俸禄");
-    }
-
-    const rank = this.sectRanks.find((r) => r.id === user.sectRank);
-    if (!rank) return this.reply("❌ 职位数据异常");
-
-    // 基础俸禄
-    let salary = rank.salary;
-
-    // 宗门等级加成
-    salary *= sect.level;
-
-    // 个人贡献加成
-    const contributionBonus = Math.min(1, user.contribution / 1000);
-    salary = Math.floor(salary * (1 + contributionBonus));
-
-    // 更新数据
-    user.stone += salary;
-    user.lastSalary = now;
-    this.saveData();
-
-    await this.reply(
-      [
-        `🏯 成功领取 ${sect.name} 俸禄！`,
-        `🎖️ 职位：${rank.name}`,
-        `💎 灵石 +${salary}`,
-        `📊 贡献加成：${Math.floor(contributionBonus * 100)}%`,
-        `💡 提示：提升职位和宗门等级可增加俸禄`,
+        `💰 使用 #领取俸禄 获取每日资源`,
       ].join("\n")
     );
   }
@@ -3172,11 +2909,12 @@ export class Cultivation extends plugin {
     const rankList = users
       .map(
         (u, i) =>
-          `${i + 1}. ${u.name} - ${this.realms[u.realm].name} ⚔️${
-            u.combatPower
-          }`
+          `${i + 1}. ${u.name} - ${this.realms[u.realm]} ⚔️${u.combatPower}`
       )
       .join("\n");
+
+    const userRank =
+      users.findIndex((u) => u.id === this.e.user_id) + 1 || "未上榜";
 
     await this.reply(
       [
@@ -3184,9 +2922,7 @@ export class Cultivation extends plugin {
         "=======================",
         rankList,
         "=======================",
-        `你的排名：${
-          users.findIndex((u) => u.id === this.e.user_id) + 1 || "未上榜"
-        }`,
+        `你的排名：${userRank}`,
       ].join("\n")
     );
   }
@@ -3194,6 +2930,73 @@ export class Cultivation extends plugin {
   /** 获取用户名称 */
   getUserName(userId) {
     // 实际实现中需要根据平台获取用户名称
-    return `道友${userId.substring(0, 4)}`;
+    return `用户${userId}`;
+  }
+
+  /** 查看境界 */
+  async checkCultivation() {
+    const userId = this.e.user_id;
+    const user = this.getUserData(userId);
+    const realmIndex = user.realm;
+    const realmName = this.realms[realmIndex];
+    const nextRealm =
+      realmIndex < this.realms.length - 1
+        ? this.realms[realmIndex + 1]
+        : "已至巅峰";
+
+    // 计算属性加成
+    const spiritRoot = this.spiritRoots[user.spiritRoot];
+    const expRate = spiritRoot.expRate * (1 + user.comprehension * 0.1);
+
+    const msg = [
+      `🧘 道号：${this.e.sender.card || this.e.sender.nickname}`,
+      `🌠 境界：${realmName}（${user.exp}/${user.maxExp}）`,
+      `✨ 灵根：${spiritRoot.name}（修为效率×${expRate.toFixed(1)}）`,
+      `❤️ 生命：${user.life}/100`,
+      `🍀 气运：${user.luck}/100`,
+      `💎 灵石：${user.stone}`,
+      `📜 功法：${user.arts
+        .map((id) => {
+          const art = this.arts.find((a) => a.id === id);
+          return art ? art.name : "未知功法";
+        })
+        .join("、")}`,
+      `⚔️ 战斗力：${user.combatPower}`,
+      `⬆️ 下一境界：${nextRealm}`,
+      `⚡ 渡劫：${user.successCount}成功/${user.tribulationCount}次`,
+    ];
+
+    // 显示装备的法宝
+    if (user.equippedArtifact) {
+      const artifact = this.artifacts.find(
+        (a) => a.id === user.equippedArtifact
+      );
+      msg.push(`🔮 法宝：${artifact.name}（${artifact.effect}）`);
+    }
+
+    // 显示宗门信息
+    if (user.sect && this.sects[user.sect]) {
+      const sect = this.sects[user.sect];
+      const title = this.sectTitles.find((t) => t.id === user.title);
+      msg.push(`🏯 宗门：${sect.name}（${title?.name || "未知职位"}）`);
+      msg.push(`🎖️ 贡献：${user.contribution}`);
+    }
+
+    // 显示签到信息
+    if (user.lastSign) {
+      const lastSignDate = new Date(user.lastSign);
+      const today = new Date();
+      const diffDays = Math.floor(
+        (today - lastSignDate) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays === 0) {
+        msg.push(`📅 今日已签到（连续${user.signStreak}天）`);
+      } else {
+        msg.push(`📅 已连续签到：${user.signStreak}天`);
+      }
+    }
+
+    await this.reply(msg.join("\n"));
   }
 }
