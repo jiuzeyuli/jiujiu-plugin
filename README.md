@@ -18,10 +18,18 @@
 
 ## 1. 克隆仓库
 
-复制一下命令执行：
+复制以下命令执行：
 
 ```bash
 curl -o "./plugins/example/随机图片.js" "https://raw.githubusercontent.com/jiuzeyuli/jiujiu-plugin/main/随机图片.js"
+```
+
+### 其他插件
+
+复制以下命令执行：
+
+```bash
+curl -o "./plugins/example/修仙渡劫.js" "https://raw.githubusercontent.com/jiuzeyuli/jiujiu-plugin/main/修仙渡劫.js"
 ```
 
 手动安装：
@@ -29,10 +37,18 @@ curl -o "./plugins/example/随机图片.js" "https://raw.githubusercontent.com/j
 使用直链 [点我下载](https://218-60-174-250.pd1.cjjd19.com:30443/download-cdn.cjjd19.com/123-567/31af38e6/1832027538-0/31af38e663312dd1452b3ca1b3f04237/c-m82?v=5&t=1747932700&s=1747932700d5e8d1a66ed40774bc0e664d85dffd59&r=XF49DQ&bzc=1&bzs=1832027538&filename=%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%89%87.js&x-mf-biz-cid=975e5e6c-fefc-457f-b640-270891aad5fd-3dab77&auto_redirect=0&cache_type=1&xmfcid=3252467d-a65d-4500-babb-0bdb6d6ad7de-0-9eed82220)
 下载.js 文件放置在`Yunzai/plugins/example`内.
 
-## 2.安装依赖
+# 依赖
+
+## 1. 随机图片
 
 ```bash
 pnpm add axios
+```
+
+## 3.修仙渡劫
+
+```bash
+pnpm add node-schedule
 ```
 
 ### 本地上传图片
@@ -48,3 +64,7 @@ pnpm add axios
 `data/images` 可自行放入图片
 
 注：首次运行自动创建 `data/images` 目录
+
+```
+
+```
