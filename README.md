@@ -41,7 +41,7 @@ curl -o "./plugins/example/修仙渡劫.js" "https://raw.githubusercontent.com/j
 ## 1. 随机图片
 
 ```bash
-pnpm add axios
+无
 ```
 
 ## 2.修仙渡劫
